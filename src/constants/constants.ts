@@ -1,0 +1,4 @@
+export const MAX_ALLOWED_DELTA_SECONDS = 60 * 60 
+export const ASCENDENCY_GEM_THRESHOLD = 10000
+export const COST_GROWTH_FACTOR = 1.15
+export const AUTOSAVE_INTERVAL_MS = 5_000;
