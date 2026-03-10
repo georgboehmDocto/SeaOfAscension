@@ -2,6 +2,8 @@
 
 A pixel-art idle browser game where you sail through increasingly treacherous seas, collecting gold and gems to upgrade your ship.
 
+<img width="1913" height="958" alt="Screenshot 2026-03-10 at 16 40 42" src="https://github.com/user-attachments/assets/947992ef-75f0-4d44-96c0-f58c3377da2d" />
+
 ## Play
 
 Visit [sea-of-ascension.com](https://sea-of-ascension.com) to play in your browser.
