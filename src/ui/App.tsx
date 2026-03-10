@@ -8,7 +8,7 @@ type Props = {
 };
 
 export function App({ state, dispatch }: Props) {
-  if (state.event?.type === "selectCaptain") {
+  if (state.event && "id" in state.event && state.event.id === "decision") {
     
     return (
       <ChoiceSelectionModal

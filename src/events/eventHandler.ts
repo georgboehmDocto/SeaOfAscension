@@ -17,19 +17,22 @@ export function handleEvent(
   if (!event) return;
 
   if (event.id === "spawn") {
+    const entityId = `fish-event-${event.spawnedAt}`;
 
     deps.addEntity(
       createFishEntity({
-        canvas: deps.canvas,
+        entityId,
         fishImg: deps.fishImages[event.fishVariant],
+        variant: event.fishVariant,
         x: event.x,
         y: event.y,
+        spawnMs: event.spawnedAt,
       })
     );
 
     // expire
     if (deps.canvas && Date.now() - event.spawnedAt > event.lifetimeMs) {
-      deps.removeEntity("fish");
+      deps.removeEntity(entityId);
       state.event = null;
     }
   }

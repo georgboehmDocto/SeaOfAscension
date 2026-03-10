@@ -1,11 +1,13 @@
-import { ShipState, ShipUpgrade, ShipUpgradeId } from "../types/ShipState";
+import { ShipUpgradeId } from "../constants/shipUpgrades";
+import type { ShipState, ShipUpgradeState } from "../types/ShipState";
 
 export function applyShipUpgrade(
-  upgrade: ShipUpgrade,
+  upgradeId: ShipUpgradeId,
+  upgrade: ShipUpgradeState,
   shipState: ShipState
-): Record<ShipUpgradeId, ShipUpgrade> {
+): Record<ShipUpgradeId, ShipUpgradeState> {
   return {
     ...shipState.upgrades,
-    [upgrade.id]: upgrade 
-  }
+    [upgradeId]: upgrade,
+  };
 }
