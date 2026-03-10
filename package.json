@@ -1,17 +1,20 @@
 {
-  "name": "sea-of-ascensions",
+  "name": "sea-of-ascension",
   "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc",
-    "start": "node dist/index.js",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
     "test": "vitest"
+  },
+  "engines": {
+    "node": ">=20.19.0 || >=22.12.0"
   },
   "devDependencies": {
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
-    "ts-node": "^10.9.1",
     "typescript": "^5.3.3",
     "vite": "^7.2.7",
     "vitest": "^4.0.15"
