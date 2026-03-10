@@ -11,11 +11,29 @@ export function reduce(state: GameState, action: GameAction): GameState {
     case "captain/levelUp":
       if (!state.captain) return state;
       return { ...state, captain: levelUpCaptain(state.captain) };
-    case "captain/select":
-      const initialCaptainState = getDefaultCaptainState(action.captainId)
-      return {...state, captain: initialCaptainState, event: null}
-    default: {
-      return state;
+    case "captain/select": {
+      const initialCaptainState = getDefaultCaptainState(action.captainId);
+      return { ...state, captain: initialCaptainState, event: null };
     }
+    case "fish/collected":
+      return {
+        ...state,
+        resources: {
+          ...state.resources,
+          gold: state.resources.gold + action.goldAmount,
+          lifeTimeGoldEarned:
+            state.resources.lifeTimeGoldEarned + action.goldAmount,
+        },
+      };
+    case "gem/collected":
+      return {
+        ...state,
+        resources: {
+          ...state.resources,
+          ascendencyGems: state.resources.ascendencyGems + 1,
+        },
+      };
+    default:
+      return state;
   }
 }

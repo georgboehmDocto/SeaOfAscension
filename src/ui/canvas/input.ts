@@ -1,12 +1,13 @@
 // ui/canvas/input.ts
 import type { GameState } from "../../types/GameState";
 import type { GameAction } from "../../actions/GameAction";
-import type { Entity } from "./entities/types";
+import type { Entity, EntityId } from "./entities/types";
 import { pickEntityTopMost } from "../../hitTest/pickEntityTopMost";
 import { getCssPointFromMouseEvent } from "../../hitTest/getCanvasPointFromMouseEvent";
+import { showFloatingText } from "../floatingText";
 
 export type TooltipAnchor =
-  | { entityId: string; x: number; y: number }
+  | { entityId: string; entityTooltip?: string; x: number; y: number }
   | null;
 
 function getCssPoint(e: MouseEvent, canvas: HTMLCanvasElement) {
@@ -20,6 +21,7 @@ export function attachCanvasInput(opts: {
   getState: () => GameState;
   setState: (state: GameState) => void;
   dispatchAction: (state: GameState, nowMs: number, action: GameAction) => GameState;
+  removeEntity: (id: EntityId) => void;
   getNowMs?: () => number;
   setTooltipAnchor: (a: TooltipAnchor) => void;
 }) {
@@ -67,6 +69,7 @@ export function attachCanvasInput(opts: {
     if (picked?.tooltip) {
       opts.setTooltipAnchor({
         entityId: picked.id,
+        entityTooltip: picked.tooltip,
         x: cssPoint.x + 12,
         y: cssPoint.y - 24,
       });
@@ -79,6 +82,7 @@ export function attachCanvasInput(opts: {
 
   opts.canvas.addEventListener("click", (event) => {
     const point = getCssPointFromMouseEvent(event, opts.canvas);
+    const cssPoint = getCssPoint(event, opts.canvas);
     const entities = opts.getEntities();
     const state = opts.getState();
     const nowMs = opts.getNowMs ? opts.getNowMs() : Date.now();
@@ -91,10 +95,31 @@ export function attachCanvasInput(opts: {
       nowMs,
     });
 
-    const action = picked?.onClick?.(state, nowMs);
+    if (!picked) return;
+
+    const action = picked.onClick?.(state, nowMs);
     if (!action) return;
 
     const next = opts.dispatchAction(state, nowMs, action);
     opts.setState(next);
+
+    // Show floating text for collectibles
+    const canvasRect = opts.canvas.getBoundingClientRect();
+    const screenX = canvasRect.left + cssPoint.x;
+    const screenY = canvasRect.top + cssPoint.y;
+
+    if (action.type === "fish/collected") {
+      showFloatingText(screenX, screenY, `+${action.goldAmount} gold`, "#FFD700");
+    } else if (action.type === "gem/collected") {
+      showFloatingText(screenX, screenY, "+1 gem", "#AA55FF");
+    }
+
+    if (picked.selfDestructOnClick) {
+      opts.removeEntity(picked.id);
+      if (hoveredId === picked.id) {
+        hoveredId = null;
+        opts.setTooltipAnchor(null);
+      }
+    }
   });
 }

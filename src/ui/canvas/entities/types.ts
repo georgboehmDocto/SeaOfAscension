@@ -2,15 +2,16 @@ import { GameAction } from "../../../actions/GameAction";
 import { Rect } from "../../../hitTest/types";
 import { GameState } from "../../../types/GameState";
 
-export type EntityId = "sea" | "ship" | "mast" | "chest" | "fish";
+export type EntityId = string;
 
 export type Entity = {
   id: EntityId;
   zIndex: number;
   cursor: "default" | "pointer";
   tooltip?: string;
+  selfDestructOnClick?: boolean;
 
-  /** Rectangle in CANVAS coordinates. Used for hit testing. */
+  /** Rectangle in CSS coordinates. Used for hit testing. */
   getPickRect: (args: {
     canvas: HTMLCanvasElement;
     state: GameState;
