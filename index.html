@@ -6,19 +6,37 @@
       id="world"
       style="width: 100vw; height: 100vh; display: block; position: absolute; z-index: 1"
     ></canvas>
-    <!-- <button id="upgrade" style="position: relative; z-index: 2">Upgrade Speed (x2)</button>
-    <button id="captain" style="position: relative; z-index: 2">Upgrade Captain Level</button>
-    <button id="crewmate" style="position: relative; z-index: 2">Upgrade Crew Mate Level</button> -->
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <button id="saveGame" style="position: relative; z-index: 2">Save Game</button>
-    <button id="exportGame" style="position: relative; z-index: 2">Export Game</button>
-    <button id="resetGame" style="position: relative; z-index: 2">Reset Game</button>
-    <button id="importGame" style="position: relative; z-index: 2">Import Game</button>
+
+    <button id="settings-toggle" class="settings-toggle">
+      <img src="/cog.png" alt="Settings" class="settings-icon" />
+    </button>
+
+    <div id="controls-panel">
+      <div class="controls-section">
+        <div class="controls-section-title">Game Progress</div>
+        <button id="saveGame" class="control-button">
+          Save
+        </button>
+      </div>
+
+      <div class="controls-section">
+        <div class="controls-section-title">Import/Export</div>
+        <button id="exportGame" class="control-button">
+          Export
+        </button>
+        <button id="importGame" class="control-button">
+          Import
+        </button>
+      </div>
+
+      <div class="controls-section">
+        <div class="controls-section-title">Danger Zone</div>
+        <button id="resetGame" class="control-button danger">
+          Reset
+        </button>
+      </div>
+    </div>
+
     <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
