@@ -7,14 +7,15 @@ export function purchaseShipUpgrade(
   upgradeId: ShipUpgradeId
 ): GameState {
   const current = gameState.ship.upgrades[upgradeId];
+  const remainingGold = gameState.resources.gold - current.cost;
+
+  if (remainingGold < 0) return gameState;
 
   const next = {
     ...current,
     level: current.level + 1,
-    cost: current.cost * COST_GROWTH_FACTOR ** current.level,
+    cost: current.cost * COST_GROWTH_FACTOR ** (current.level + 1),
   };
-
-  const remainingGold = gameState.resources.gold - current.cost;
 
   return {
     ...gameState,
