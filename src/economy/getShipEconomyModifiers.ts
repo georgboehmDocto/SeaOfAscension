@@ -45,6 +45,10 @@ export function getShipEconomyModifiers(ship: ShipState): EconomyModifier[] {
           source: 'ship'
         });
         break;
+
+      case "mulSpawnRate":
+        // Spawn rate is handled outside the economy system
+        break;
     }
   }
 

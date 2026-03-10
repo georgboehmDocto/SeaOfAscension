@@ -15,9 +15,11 @@ export function saveToLocalStorage(state: GameState): void {
 
 export function loadFromLocalStorage(): GameState | null {
   const raw = localStorage.getItem("sea-of-ascension:save");
-  const gameState: GameState | null = raw ? JSON.parse(raw) : null;
-  
-  return gameState;
+  if (!raw) return null;
+
+  const parsed = JSON.parse(raw);
+  const migrated = migrate(parsed);
+  return migrated as GameState;
 }
 
 export function resetLocalStorage(): void {
@@ -45,9 +47,21 @@ export function importSave(encoded: string): SaveResult {
 
 /** Migration: unknown -> unknown -> GameState-ish */
 function migrate(input: unknown): unknown {
-  // V0: accept only version 1 for now
-  // Later: detect older versions and transform.
-  return input;
+  if (!input || typeof input !== "object") return input;
+  const s = input as any;
+
+  // Migrate crowsNest -> luckBucket and ensure it exists
+  if (s.ship?.upgrades) {
+    if (s.ship.upgrades.crowsNest) {
+      s.ship.upgrades.luckBucket = s.ship.upgrades.crowsNest;
+      delete s.ship.upgrades.crowsNest;
+    }
+    if (!s.ship.upgrades.luckBucket) {
+      s.ship.upgrades.luckBucket = { level: 0, cost: 200, resource: "gold" };
+    }
+  }
+
+  return s;
 }
 
 function validate(

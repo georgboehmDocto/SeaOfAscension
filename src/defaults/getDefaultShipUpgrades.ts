@@ -26,5 +26,10 @@ export function getDefaultShipUpgrades(): Record<
       cost: 1000,
       resource: "gold",
     },
+    luckBucket: {
+      level: 0,
+      cost: 200,
+      resource: "gold",
+    },
   };
 }

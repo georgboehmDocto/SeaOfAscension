@@ -5,3 +5,4 @@ export type ModifierUpgradeEffects =
   | { kind: "mulSpeed"; factorPerLevel: number }
   | { kind: "addGoldPerMeter"; amountPerLevel: number }
   | { kind: "mulGold"; factorPerLevel: number }
+  | { kind: "mulSpawnRate"; factorPerLevel: number }
