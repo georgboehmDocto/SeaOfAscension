@@ -1,8 +1,4 @@
 # Sea of Ascension
-
-A pixel-art idle browser game where you sail through increasingly treacherous seas, collecting gold and gems to upgrade your ship.
-Visit [sea-of-ascension.com](https://sea-of-ascension.com) to play in your browser.
-
 <img width="1913" height="958" alt="Screenshot 2026-03-10 at 16 40 42" src="https://github.com/user-attachments/assets/947992ef-75f0-4d44-96c0-f58c3377da2d" />
 
 ## Features
@@ -10,6 +6,7 @@ Visit [sea-of-ascension.com](https://sea-of-ascension.com) to play in your brows
 - **Idle progression** - your ship sails and earns gold automatically
 - **Ship upgrades** - upgrade sails (speed), engine (speed multiplier), nets (gold/meter), refinery (gold multiplier), and the Luck Bucket (spawn rate)
 - **Collectibles** - click fish and gems that appear in the water for bonus rewards
+- **Island encounters** - every once in a while you will encounter islands hosting different treasures, enemies or opportunities to further accelelrate your journey
 - **Sea progression** - advance through 6 seas as you earn lifetime gold
 - **Save system** - auto-saves locally, with import/export support
 
