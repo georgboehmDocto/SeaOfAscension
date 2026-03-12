@@ -6,6 +6,7 @@ import {
   FISH_LIFETIME_MS,
   GEM_LIFETIME_MS,
   FISH_SPAWN_WEIGHT,
+  ISLAND_INTERVAL_METERS,
 } from "./constants/constants";
 import { computeDeltaSeconds } from "./engine/computeDeltaSeconds";
 import {
@@ -28,6 +29,11 @@ import { createResourcesPanel } from "./ui/resourcesPanel";
 import { createDistanceDisplay } from "./ui/distanceDisplay";
 import { createFishEntity } from "./ui/canvas/entities/world/fish";
 import { createGemEntity } from "./ui/canvas/entities/world/gem";
+import { createIslandEntity, type IslandAnimState } from "./ui/canvas/entities/world/island";
+import { createIslandModal } from "./ui/islandModal";
+import { createIslandApproachIndicator } from "./ui/islandApproachIndicator";
+import { loadTmjMap } from "./tmx/loadTmjMap";
+import { generateIslandReward } from "./island/generateReward";
 
 // --- DOM Elements ---
 const controlsPanel = document.getElementById("controls-panel")!;
@@ -43,6 +49,26 @@ settingsToggle.addEventListener("click", () => {
 });
 
 let state = loadFromLocalStorage() ?? initialGameState;
+
+// Migrate: ensure island state exists for old saves
+if (!state.island) {
+  const currentDistance = state.resources?.distance ?? 0;
+  const interval = ISLAND_INTERVAL_METERS;
+  const nextIslandAt = Math.ceil(currentDistance / interval + 1) * interval;
+  state = {
+    ...state,
+    island: {
+      nextIslandAt,
+      docked: false,
+      chestOpened: false,
+      islandsVisited: 0,
+    },
+  };
+}
+
+// If we reload while docked with chest already opened, re-show the modal
+let pendingModalOnLoad = state.island.docked && state.island.chestOpened;
+
 let lastSaveAt = Date.now();
 let lastNowMs = Date.now();
 let tooltipAnchor: TooltipAnchor = null;
@@ -50,6 +76,8 @@ let tooltipAnchor: TooltipAnchor = null;
 const tooltip = createTooltipController();
 const resourcesPanel = createResourcesPanel();
 const distanceDisplay = createDistanceDisplay();
+const islandModal = createIslandModal();
+const islandApproach = createIslandApproachIndicator();
 
 const canvas = document.getElementById("world") as HTMLCanvasElement;
 
@@ -61,6 +89,9 @@ const assets = await loadAssets({
   gem: "/gems-3.png",
   compass: "/compass.png",
   bucket: "/bucket_1.png",
+  chestGold: "/buried chest-opening-half buried-gold.png",
+  chestEmpty: "/buried chest-opening-half buried.png",
+  beach: "/beach - standard - with thick foam - spritesheet.png",
   fish0: "/fish/fish_0.png",
   fish1: "/fish/fish_1.png",
   fish2: "/fish/fish_2.png",
@@ -105,12 +136,56 @@ const mastSheet: SpriteSheet = {
   frameCount: 8,
 };
 
+const CHEST_FRAME_W = 128;
+const CHEST_FRAME_H = 128;
+const CHEST_FRAME_COUNT = 11;
+
+const chestGoldSheet: SpriteSheet = {
+  img: assets.chestGold,
+  cols: CHEST_FRAME_COUNT,
+  rows: 1,
+  frameW: CHEST_FRAME_W,
+  frameH: CHEST_FRAME_H,
+  frameCount: CHEST_FRAME_COUNT,
+};
+
+const chestEmptySheet: SpriteSheet = {
+  img: assets.chestEmpty,
+  cols: CHEST_FRAME_COUNT,
+  rows: 1,
+  frameW: CHEST_FRAME_W,
+  frameH: CHEST_FRAME_H,
+  frameCount: CHEST_FRAME_COUNT,
+};
+
+// --- Island Map ---
+const islandMap = await loadTmjMap("/island_treasure.tmj", {
+  "beach - standard - with thick foam - spritesheet.png": assets.beach,
+});
+
+const islandAnimState: IslandAnimState = {
+  animStartMs: null,
+  animComplete: false,
+  slideStartMs: null,
+  slideOutStartMs: null,
+};
+
+const islandEntity = createIslandEntity({
+  islandMap,
+  chestSheet: chestGoldSheet,
+  chestEmptySheet: chestEmptySheet,
+  animState: islandAnimState,
+});
+
 const world = createWorldRenderer(canvas, {
   waterImg,
   shipSheet,
   mastSheet,
   bucketImg,
 });
+
+// Add island entity to the world
+world.addEntity(islandEntity);
 
 computeOpaqueBounds(mastSheet);
 computeOpaqueBounds(shipSheet);
@@ -124,6 +199,34 @@ attachCanvasInput({
   removeEntity: world.removeEntity,
   getNowMs: () => lastNowMs,
   setTooltipAnchor: (a) => (tooltipAnchor = a),
+});
+
+// --- Island Modal ---
+let modalShowing = false;
+
+// Re-show modal if we reloaded while docked with chest already opened
+if (pendingModalOnLoad) {
+  const reward = generateIslandReward(state.island.islandsVisited);
+  modalShowing = true;
+  // Small delay so the island slides in first
+  setTimeout(() => islandModal.show(reward.gold, reward.gems), 1600);
+}
+
+islandModal.onContinue(() => {
+  islandModal.hide();
+  modalShowing = false;
+
+  // Start slide-out animation
+  islandAnimState.slideOutStartMs = Date.now();
+
+  // After slide-out completes, dispatch continue and reset
+  setTimeout(() => {
+    state = dispatch(state, Date.now(), { type: "island/continue" });
+    islandAnimState.animStartMs = null;
+    islandAnimState.animComplete = false;
+    islandAnimState.slideStartMs = null;
+    islandAnimState.slideOutStartMs = null;
+  }, 1500);
 });
 
 // --- Spawn Manager ---
@@ -143,6 +246,9 @@ function totalCollectiblesOnScreen(): number {
 }
 
 function trySpawn(nowMs: number) {
+  // Don't spawn collectibles while docked at an island
+  if (state.island.docked) return;
+
   const spawnMultiplier = getSpawnRateMultiplier();
   const effectiveInterval = BASE_SPAWN_INTERVAL_MS / spawnMultiplier;
 
@@ -223,6 +329,19 @@ function start() {
 
     resourcesPanel.update(state);
     distanceDisplay.update(state);
+    islandApproach.update(state);
+
+    // Auto-dispatch chest opened when animation completes
+    if (islandAnimState.animComplete && state.island.docked && !state.island.chestOpened && !modalShowing) {
+      const reward = generateIslandReward(state.island.islandsVisited);
+      state = dispatch(state, nowMs, {
+        type: "island/chestOpened",
+        goldReward: reward.gold,
+        gemReward: reward.gems,
+      });
+      modalShowing = true;
+      islandModal.show(reward.gold, reward.gems);
+    }
 
     trySpawn(nowMs);
 

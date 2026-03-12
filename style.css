@@ -216,3 +216,209 @@ html, body {
     opacity: 0;
   }
 }
+
+/* --- Island Approach Indicator --- */
+#island-approach {
+  position: fixed;
+  top: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  z-index: 100;
+  transform: translateX(50%);
+}
+
+.island-approach-arrow {
+  font-size: 28px;
+  color: #f4d03f;
+  text-shadow: 0 0 8px rgba(244, 208, 63, 0.6);
+  animation: island-bounce 1.5s ease-in-out infinite;
+}
+
+@keyframes island-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(6px); }
+}
+
+.island-approach-distance {
+  font-size: 18px;
+  color: #fff;
+  font-weight: bold;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.island-approach-label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 500;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* --- Island Modal --- */
+.island-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+}
+
+.island-modal {
+  animation: modal-appear 0.3s ease-out;
+  image-rendering: pixelated;
+}
+
+@keyframes modal-appear {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* Wooden frame */
+.island-modal-frame {
+  background:
+    linear-gradient(170deg, #6b3a1f 0%, #8b5e3c 15%, #5a2d0c 50%, #7a4a2a 85%, #4a1e08 100%);
+  border: 6px solid #3a1a06;
+  border-radius: 12px;
+  padding: 8px;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.7),
+    inset 0 2px 4px rgba(255, 220, 150, 0.15),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+  min-width: 380px;
+  max-width: 460px;
+}
+
+/* Header with title */
+.island-modal-header {
+  background: linear-gradient(180deg, #5a2d0c 0%, #7a4a2a 50%, #5a2d0c 100%);
+  border-radius: 6px 6px 0 0;
+  padding: 16px 24px 12px;
+  text-align: center;
+  border-bottom: 3px solid #3a1a06;
+}
+
+.island-modal-title {
+  font-size: 28px;
+  color: #f4d03f;
+  font-weight: bold;
+  text-shadow:
+    2px 2px 0 #5a2d0c,
+    0 0 12px rgba(244, 208, 63, 0.5);
+  letter-spacing: 1px;
+}
+
+/* Parchment body */
+.island-modal-body {
+  background:
+    linear-gradient(135deg, #e8d5a3 0%, #d4bc82 30%, #e0c995 60%, #c9ac6a 100%);
+  margin: 0;
+  padding: 20px 28px;
+  border-left: 3px solid #b8975a;
+  border-right: 3px solid #b8975a;
+  position: relative;
+}
+
+.island-modal-body::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 3px,
+    rgba(0, 0, 0, 0.02) 3px,
+    rgba(0, 0, 0, 0.02) 4px
+  );
+  pointer-events: none;
+}
+
+.island-modal-subtitle {
+  font-size: 16px;
+  color: #4a3520;
+  text-align: center;
+  margin-bottom: 20px;
+  font-weight: 500;
+}
+
+/* Reward items */
+.island-modal-rewards {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+}
+
+.island-reward-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.island-reward-icon {
+  font-size: 48px;
+  filter: drop-shadow(2px 2px 2px rgba(0, 0, 0, 0.3));
+}
+
+.island-reward-amount {
+  font-size: 22px;
+  font-weight: 800;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.2);
+}
+
+.island-reward-amount.gold {
+  color: #b8860b;
+}
+
+.island-reward-amount.gem {
+  color: #7b2d8e;
+}
+
+/* Footer with continue button */
+.island-modal-footer {
+  background: linear-gradient(180deg, #5a2d0c 0%, #7a4a2a 50%, #5a2d0c 100%);
+  border-radius: 0 0 6px 6px;
+  padding: 12px 24px;
+  display: flex;
+  justify-content: flex-end;
+  border-top: 3px solid #3a1a06;
+}
+
+.island-modal-continue {
+  background: linear-gradient(180deg, #8b5e3c 0%, #6b3a1f 100%);
+  border: 2px solid #3a1a06;
+  border-radius: 6px;
+  color: #f4d03f;
+  font-size: 18px;
+  font-weight: 700;
+  padding: 10px 28px;
+  cursor: pointer;
+  font-family: inherit;
+  text-shadow: 1px 1px 0 #3a1a06;
+  letter-spacing: 0.5px;
+  transition: all 0.15s ease;
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 1px 2px rgba(255, 220, 150, 0.15);
+}
+
+.island-modal-continue:hover {
+  background: linear-gradient(180deg, #a06e44 0%, #7a4a2a 100%);
+  transform: translateY(-1px);
+  box-shadow:
+    0 4px 8px rgba(0, 0, 0, 0.4),
+    inset 0 1px 2px rgba(255, 220, 150, 0.2);
+}
+
+.island-modal-continue:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}

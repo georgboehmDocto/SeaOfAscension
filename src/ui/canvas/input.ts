@@ -112,6 +112,13 @@ export function attachCanvasInput(opts: {
       showFloatingText(screenX, screenY, `+${action.goldAmount} gold`, "#FFD700");
     } else if (action.type === "gem/collected") {
       showFloatingText(screenX, screenY, "+1 gem", "#AA55FF");
+    } else if (action.type === "island/chestOpened") {
+      if (action.goldReward > 0) {
+        showFloatingText(screenX, screenY - 20, `+${action.goldReward} gold`, "#FFD700");
+      }
+      if (action.gemReward > 0) {
+        showFloatingText(screenX, screenY + 10, `+${action.gemReward} gems`, "#AA55FF");
+      }
     }
 
     if (picked.selfDestructOnClick) {

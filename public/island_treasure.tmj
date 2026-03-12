@@ -1,0 +1,41 @@
+{ "compressionlevel":-1,
+ "height":10,
+ "infinite":false,
+ "layers":[
+        {
+         "data":[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 69, 37, 37, 37, 38, 0, 0, 0, 0, 0,
+            0, 69, 70, 105, 105, 105, 72, 73, 0, 0, 0, 0,
+            0, 103, 105, 105, 105, 105, 105, 107, 1, 0, 0, 0,
+            0, 103, 105, 104, 105, 105, 105, 107, 1, 0, 0, 0,
+            0, 103, 105, 105, 105, 105, 105, 107, 0, 0, 0, 0,
+            0, 137, 138, 105, 105, 105, 140, 141, 0, 0, 0, 0,
+            0, 0, 172, 173, 173, 173, 174, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+         "height":10,
+         "id":1,
+         "name":"Tile Layer 1",
+         "opacity":1,
+         "type":"tilelayer",
+         "visible":true,
+         "width":12,
+         "x":0,
+         "y":0
+        }],
+ "nextlayerid":2,
+ "nextobjectid":1,
+ "orientation":"orthogonal",
+ "renderorder":"right-down",
+ "tiledversion":"1.11.2",
+ "tileheight":32,
+ "tilesets":[
+        {
+         "firstgid":1,
+         "source":"tilesets/beach-thick-foam.tsx"
+        }],
+ "tilewidth":32,
+ "type":"map",
+ "version":"1.10",
+ "width":12
+}
