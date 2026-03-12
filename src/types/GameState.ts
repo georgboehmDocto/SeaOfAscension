@@ -4,6 +4,7 @@ import { getDefaultShipUpgrades } from "../defaults/getDefaultShipUpgrades";
 import { GameEvent } from "../events/GameEvent";
 import { CaptainState } from "./CaptainState";
 import { CrewMemberId, CrewMemberState } from "./CrewMember";
+import { IslandState, getDefaultIslandState } from "./IslandState";
 import { Resources } from "./Resources";
 import { ShipState } from "./ShipState";
 
@@ -16,6 +17,7 @@ export type GameState = {
   event: GameEvent | null;
   lastTick: number; // milliseconds
   crew?: Record<CrewMemberId, CrewMemberState>;
+  island: IslandState;
 };
 
 export const initialGameState: GameState = {
@@ -28,9 +30,6 @@ export const initialGameState: GameState = {
   },
   captain: null,
   battle: {} as BattleState, // Not yet implemented
-  event: null // TODO
-  // {
-  //   type: "selectCaptain",
-  //   options: ["black_beard", "joy_girl", "gwendolin"],
-  // },
+  event: null,
+  island: getDefaultIslandState(),
 };

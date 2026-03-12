@@ -8,4 +8,6 @@ export type GameAction =
   | { type: "crew/levelUp"; crewMemberId: CrewMemberId }
   | { type: "captain/select"; captainId: CaptainId }
   | { type: "fish/collected"; goldAmount: number }
-  | { type: "gem/collected" };
+  | { type: "gem/collected" }
+  | { type: "island/chestOpened"; goldReward: number; gemReward: number }
+  | { type: "island/continue" };

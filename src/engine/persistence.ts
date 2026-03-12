@@ -1,4 +1,5 @@
 // persistence.ts
+import { ISLAND_INTERVAL_METERS } from "../constants/constants";
 import { GameState } from "../types/GameState";
 
 const STORAGE_KEY = "sea-of-ascension:save";
@@ -59,6 +60,28 @@ function migrate(input: unknown): unknown {
     if (!s.ship.upgrades.luckBucket) {
       s.ship.upgrades.luckBucket = { level: 0, cost: 200, resource: "gold" };
     }
+  }
+
+  // Ensure island state exists for old saves
+  if (!s.island) {
+    // Compute next island threshold ahead of current distance
+    const currentDistance = s.resources?.distance ?? 0;
+    const interval = ISLAND_INTERVAL_METERS;
+    const nextIslandAt = Math.ceil(currentDistance / interval + 1) * interval;
+    s.island = {
+      nextIslandAt,
+      docked: false,
+      chestOpened: false,
+      islandsVisited: 0,
+    };
+  }
+  // Fix stuck saves: if docked but nextIslandAt is way behind, unstick
+  if (s.island?.docked && s.resources?.distance > s.island.nextIslandAt + 10) {
+    const interval = ISLAND_INTERVAL_METERS;
+    const currentDistance = s.resources.distance;
+    s.island.nextIslandAt = Math.ceil(currentDistance / interval + 1) * interval;
+    s.island.docked = false;
+    s.island.chestOpened = false;
   }
 
   return s;
