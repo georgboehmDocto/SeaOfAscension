@@ -3,6 +3,7 @@ import { EconomyStats, EconomyModifier } from "../types/EconomyStats";
 import { GameState } from "../types/GameState";
 import { applyEconomyModifiers } from "./applyEconomyModifiers";
 import { getCaptainEconomyModifiers } from "./getCaptainModifiers";
+import { getActiveEffectModifiers } from "./getActiveEffectModifiers";
 
 export function deriveEconomyStats(
   state: GameState,
@@ -18,8 +19,8 @@ export function deriveEconomyStats(
   const modifiers: EconomyModifier[] = [
     ...getShipEconomyModifiers(state.ship),
     ...(state.captain ? getCaptainEconomyModifiers(state.captain) : []),
+    ...getActiveEffectModifiers(state.activeEffects ?? [], nowMs),
     // ...crewModifiers(state.crew),
-    // ...activeEffectModifiers(state.activeEffects, nowMs),
     // later: totems, artifacts, difficulty scaling, etc.
   ];
 
