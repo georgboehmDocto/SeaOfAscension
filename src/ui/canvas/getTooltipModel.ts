@@ -1,5 +1,6 @@
 import type { GameState } from "../../types/GameState";
 import type { TooltipModel } from "../tooltip/tooltip";
+import { getCrabTooltipText } from "./entities/world/crabOnShip";
 
 export function getTooltipModel(
   state: GameState,
@@ -37,6 +38,17 @@ export function getTooltipModel(
       current: { level: luckBucket.level, bonus: spawnBonus },
       next: { cost: nextCost, bonus: nextBonus },
       details: "Increases fish & gem spawn rate",
+    };
+  }
+
+  if (entityId === "crab-ship") {
+    const text = getCrabTooltipText(state, _nowMs);
+    const lines = text.split("\n");
+    return {
+      x,
+      y,
+      title: lines[0],
+      details: lines.slice(1).join("\n"),
     };
   }
 

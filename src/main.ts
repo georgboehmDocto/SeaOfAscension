@@ -31,7 +31,11 @@ import { createResourcesPanel } from "./ui/resourcesPanel";
 import { createDistanceDisplay } from "./ui/distanceDisplay";
 import { createFishEntity } from "./ui/canvas/entities/world/fish";
 import { createGemEntity } from "./ui/canvas/entities/world/gem";
-import { createIslandEntity, type IslandAnimState, SLIDE_DURATION_MS } from "./ui/canvas/entities/world/island";
+import {
+  createIslandEntity,
+  type IslandAnimState,
+  SLIDE_DURATION_MS,
+} from "./ui/canvas/entities/world/island";
 import { createShopIslandEntity } from "./ui/canvas/entities/world/shopIsland";
 import { createRudderEntity } from "./ui/canvas/entities/world/rudder";
 import { createIslandModal } from "./ui/islandModal";
@@ -43,16 +47,26 @@ import { createIslandApproachIndicator } from "./ui/islandApproachIndicator";
 import { createActiveEffectsHud } from "./ui/activeEffectsHud";
 import { loadTmjMap } from "./tmx/loadTmjMap";
 import { generateIslandReward } from "./island/generateReward";
-import { pickShopItems, getShopItemsById, type ShopItem } from "./island/shopItems";
+import {
+  pickShopItems,
+  getShopItemsById,
+  type ShopItem,
+} from "./island/shopItems";
 import { getActiveSpawnRateMultiplier } from "./economy/getActiveEffectModifiers";
 
 // --- DOM Elements ---
 const controlsPanel = document.getElementById("controls-panel")!;
 const settingsToggle = document.getElementById("settings-toggle")!;
 const saveGameButton = document.getElementById("saveGame") as HTMLButtonElement;
-const exportGameButton = document.getElementById("exportGame") as HTMLButtonElement;
-const resetGameButton = document.getElementById("resetGame") as HTMLButtonElement;
-const importGameButton = document.getElementById("importGame") as HTMLButtonElement;
+const exportGameButton = document.getElementById(
+  "exportGame",
+) as HTMLButtonElement;
+const resetGameButton = document.getElementById(
+  "resetGame",
+) as HTMLButtonElement;
+const importGameButton = document.getElementById(
+  "importGame",
+) as HTMLButtonElement;
 
 // Settings panel toggle
 settingsToggle.addEventListener("click", () => {
@@ -104,9 +118,14 @@ if (state.crabs === undefined) {
 }
 
 // If we reload while docked with chest already opened (treasure) or shop/recruitment visited, re-show modal
-const pendingTreasureModal = state.island.docked && state.island.islandType === "treasure" && state.island.chestOpened;
-const pendingShopModal = state.island.docked && state.island.islandType === "shop";
-const pendingRecruitmentModal = state.island.docked && state.island.islandType === "recruitment";
+const pendingTreasureModal =
+  state.island.docked &&
+  state.island.islandType === "treasure" &&
+  state.island.chestOpened;
+const pendingShopModal =
+  state.island.docked && state.island.islandType === "shop";
+const pendingRecruitmentModal =
+  state.island.docked && state.island.islandType === "recruitment";
 
 let lastSaveAt = Date.now();
 let lastNowMs = Date.now();
@@ -139,6 +158,7 @@ const assets = await loadAssets({
   npcIdle: "/npc-idle.png",
   shopBuilding: "/house-fisherman house.png",
   crab: "/crab.png",
+  crabAvatar: "/crab_avatar.png",
   fish0: "/fish/fish_0.png",
   fish1: "/fish/fish_1.png",
   fish2: "/fish/fish_2.png",
@@ -157,8 +177,13 @@ const compassImg = assets.compass;
 const bucketImg = assets.bucket;
 
 const fishImages = [
-  assets.fish0, assets.fish1, assets.fish2, assets.fish3,
-  assets.fish4, assets.fish5, assets.fish6,
+  assets.fish0,
+  assets.fish1,
+  assets.fish2,
+  assets.fish3,
+  assets.fish4,
+  assets.fish5,
+  assets.fish6,
 ];
 
 // Set images for UI panels
@@ -253,7 +278,11 @@ const shopIslandEntity = createShopIslandEntity({
       },
     };
     saveToLocalStorage(state);
-    shopModal.show(currentShopItems, state.resources.gold, state.resources.ascendencyGems);
+    shopModal.show(
+      currentShopItems,
+      state.resources.gold,
+      state.resources.ascendencyGems,
+    );
   },
 });
 
@@ -287,26 +316,12 @@ world.addEntity(islandEntity);
 world.addEntity(shopIslandEntity);
 world.addEntity(recruitmentIslandEntity);
 
-// Add crab entities for owned crabs
-function syncCrabEntities() {
-  const crabCount = state.crabs ?? 0;
-  // Remove excess crabs
-  for (let i = crabCount; i < 100; i++) {
-    world.removeEntity(`crab-ship-${i}`);
-  }
-  // Add missing crabs
-  for (let i = 0; i < crabCount; i++) {
-    const id = `crab-ship-${i}`;
-    if (!world.hasEntity(id)) {
-      world.addEntity(createCrabOnShipEntity({
-        index: i,
-        crabImg: assets.crab,
-        shipSheet,
-      }));
-    }
-  }
-}
-syncCrabEntities();
+// Single crab entity on ship (renders only when crabs > 0)
+const crabOnShipEntity = createCrabOnShipEntity({
+  crabImg: assets.crab,
+  shipSheet,
+});
+world.addEntity(crabOnShipEntity);
 
 computeOpaqueBounds(mastSheet);
 computeOpaqueBounds(shipSheet);
@@ -343,12 +358,16 @@ if (pendingShopModal) {
   shopNpcClicked = true;
   // Restore persisted items, or pick fresh ones if missing
   if (state.island.shopItemIds) {
-    currentShopItems = getShopItemsById(state.island.shopItemIds) ?? pickShopItems();
+    currentShopItems =
+      getShopItemsById(state.island.shopItemIds) ?? pickShopItems();
   } else {
     currentShopItems = pickShopItems();
     state = {
       ...state,
-      island: { ...state.island, shopItemIds: [currentShopItems[0].id, currentShopItems[1].id] },
+      island: {
+        ...state.island,
+        shopItemIds: [currentShopItems[0].id, currentShopItems[1].id],
+      },
     };
   }
   const items = currentShopItems;
@@ -356,7 +375,11 @@ if (pendingShopModal) {
   setTimeout(() => {
     shopModal.show(items, state.resources.gold, state.resources.ascendencyGems);
     if (purchasedId) {
-      shopModal.updateAfterPurchase(purchasedId, state.resources.gold, state.resources.ascendencyGems);
+      shopModal.updateAfterPurchase(
+        purchasedId,
+        state.resources.gold,
+        state.resources.ascendencyGems,
+      );
     }
   }, 300);
 }
@@ -372,7 +395,11 @@ shopModal.onPurchase((item) => {
     effect: item.effect,
     nowMs,
   });
-  shopModal.updateAfterPurchase(item.id, state.resources.gold, state.resources.ascendencyGems);
+  shopModal.updateAfterPurchase(
+    item.id,
+    state.resources.gold,
+    state.resources.ascendencyGems,
+  );
 });
 
 shopModal.onContinue(() => {
@@ -385,16 +412,18 @@ shopModal.onContinue(() => {
 if (pendingRecruitmentModal) {
   recruitmentModalShowing = true;
   recruitmentNpcClicked = true;
-  setTimeout(() => recruitmentModal.show(state.resources.gold, state.crabs ?? 0), 300);
+  setTimeout(
+    () => recruitmentModal.show(state.resources.gold, state.crabs ?? 0),
+    300,
+  );
 }
 
-recruitmentModal.onPurchase((quantity, totalCost) => {
+recruitmentModal.onPurchase((totalCost) => {
   state = dispatch(state, Date.now(), {
     type: "crabs/purchased",
-    quantity,
+    quantity: 1,
     totalCost,
   });
-  syncCrabEntities();
 });
 
 recruitmentModal.onContinue(() => {
@@ -422,7 +451,7 @@ function startIslandDeparture() {
 }
 
 // --- Crab Auto-Click System ---
-const CRAB_CLICKS_PER_SEC = 0.1;
+const CRAB_CLICKS_PER_SEC = 1;
 let crabClickAccumulator = 0;
 
 // --- Spawn Manager ---
@@ -432,7 +461,10 @@ let lastSpawnAttemptMs = Date.now();
 function getSpawnRateMultiplier(nowMs: number): number {
   const luckBucketLevel = state.ship.upgrades.luckBucket?.level ?? 0;
   const upgradeMultiplier = Math.pow(1.2, luckBucketLevel);
-  const effectMultiplier = getActiveSpawnRateMultiplier(state.activeEffects ?? [], nowMs);
+  const effectMultiplier = getActiveSpawnRateMultiplier(
+    state.activeEffects ?? [],
+    nowMs,
+  );
   return upgradeMultiplier * effectMultiplier;
 }
 
@@ -521,9 +553,7 @@ function start() {
       state = { ...state, activeEffects };
     }
 
-    state = tick(state, nowMs);
-
-    // Crab auto-clicking
+    // Crab auto-clicking (compute delta BEFORE tick updates lastTick)
     const crabCount = state.crabs ?? 0;
     if (crabCount > 0 && !state.island.docked) {
       const deltaS = computeDeltaSeconds(state.lastTick, nowMs);
@@ -533,6 +563,8 @@ function start() {
         state = dispatch(state, nowMs, { type: "rudder/clicked", nowMs });
       }
     }
+
+    state = tick(state, nowMs);
 
     if (nowMs - lastSaveAt > AUTOSAVE_INTERVAL_MS) {
       saveToLocalStorage(state);
@@ -577,7 +609,7 @@ function start() {
         tooltipAnchor.x,
         tooltipAnchor.y,
         nowMs,
-        tooltipAnchor.entityTooltip
+        tooltipAnchor.entityTooltip,
       );
       if (!model) tooltip.hide();
       else tooltip.show(model);

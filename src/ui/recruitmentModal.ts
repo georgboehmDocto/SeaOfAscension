@@ -3,15 +3,6 @@ import { formatResource } from "../helpers/formatResource";
 const BASE_CRAB_COST = 10;
 const COST_SCALE = 1.5;
 
-/** Cost to buy `quantity` crabs starting from `owned` crabs already owned */
-export function getCrabCost(owned: number, quantity: number): number {
-  let total = 0;
-  for (let i = 0; i < quantity; i++) {
-    total += Math.floor(BASE_CRAB_COST * Math.pow(COST_SCALE, owned + i));
-  }
-  return total;
-}
-
 /** Cost of the next single crab */
 export function getNextCrabCost(owned: number): number {
   return Math.floor(BASE_CRAB_COST * Math.pow(COST_SCALE, owned));
@@ -20,7 +11,7 @@ export function getNextCrabCost(owned: number): number {
 export type RecruitmentModal = {
   show: (playerGold: number, crabsOwned: number) => void;
   hide: () => void;
-  onPurchase: (callback: (quantity: number, totalCost: number) => void) => void;
+  onPurchase: (callback: (totalCost: number) => void) => void;
   onContinue: (callback: () => void) => void;
 };
 
@@ -33,23 +24,17 @@ export function createRecruitmentModal(): RecruitmentModal {
     <div class="island-modal">
       <div class="island-modal-frame recruitment-modal-frame">
         <div class="island-modal-header">
-          <div class="island-modal-title">Recruit Crabs!</div>
+          <div class="island-modal-title">Recruit a Crab!</div>
         </div>
         <div class="island-modal-body">
-          <div class="island-modal-subtitle">Crabs will auto-row your ship!</div>
+          <div class="island-modal-subtitle">A crab wants to join your crew!</div>
           <div class="recruitment-content">
             <div class="recruitment-crab-preview">
-              <img src="/crab.png" class="recruitment-crab-img" alt="Crab" />
-              <div class="recruitment-crab-effect">+0.1 rows/sec each</div>
+              <img src="/crab_avatar.png" class="recruitment-crab-img" alt="Crab" />
+              <div class="recruitment-crab-effect">+1 auto-row/sec</div>
             </div>
             <div class="recruitment-controls">
-              <div class="recruitment-quantity-row">
-                <button class="recruitment-qty-btn" id="recruit-minus">-</button>
-                <span class="recruitment-qty-value" id="recruit-qty">1</span>
-                <button class="recruitment-qty-btn" id="recruit-plus">+</button>
-              </div>
               <div class="recruitment-cost" id="recruit-cost">Cost: 10 gold</div>
-              <div class="recruitment-owned" id="recruit-owned">Crabs owned: 0</div>
               <button class="recruitment-buy-btn" id="recruit-buy">Recruit!</button>
             </div>
           </div>
@@ -63,27 +48,20 @@ export function createRecruitmentModal(): RecruitmentModal {
 
   document.body.appendChild(overlay);
 
-  const qtyEl = document.getElementById("recruit-qty")!;
   const costEl = document.getElementById("recruit-cost")!;
-  const ownedEl = document.getElementById("recruit-owned")!;
   const buyBtn = document.getElementById("recruit-buy") as HTMLButtonElement;
-  const minusBtn = document.getElementById("recruit-minus")!;
-  const plusBtn = document.getElementById("recruit-plus")!;
   const continueBtn = document.getElementById("recruit-continue")!;
 
-  let purchaseCallback: ((quantity: number, totalCost: number) => void) | null = null;
+  let purchaseCallback: ((totalCost: number) => void) | null = null;
   let continueCallback: (() => void) | null = null;
 
-  let quantity = 1;
   let currentGold = 0;
   let currentOwned = 0;
   let purchased = false;
 
   function updateDisplay() {
-    qtyEl.textContent = String(quantity);
-    const cost = getCrabCost(currentOwned, quantity);
+    const cost = getNextCrabCost(currentOwned);
     costEl.textContent = `Cost: ${formatResource(cost)} gold`;
-    ownedEl.textContent = `Crabs owned: ${currentOwned}`;
     const canAfford = currentGold >= cost;
     buyBtn.disabled = !canAfford || purchased;
     buyBtn.textContent = purchased ? "Recruited!" : "Recruit!";
@@ -94,30 +72,14 @@ export function createRecruitmentModal(): RecruitmentModal {
     }
   }
 
-  minusBtn.addEventListener("click", () => {
-    if (quantity > 1) {
-      quantity--;
-      updateDisplay();
-    }
-  });
-
-  plusBtn.addEventListener("click", () => {
-    quantity++;
-    const cost = getCrabCost(currentOwned, quantity);
-    if (cost > currentGold) {
-      quantity--;
-    }
-    updateDisplay();
-  });
-
   buyBtn.addEventListener("click", () => {
     if (purchased) return;
-    const cost = getCrabCost(currentOwned, quantity);
+    const cost = getNextCrabCost(currentOwned);
     if (currentGold < cost) return;
     purchased = true;
     currentGold -= cost;
-    currentOwned += quantity;
-    purchaseCallback?.(quantity, cost);
+    currentOwned += 1;
+    purchaseCallback?.(cost);
     updateDisplay();
   });
 
@@ -127,7 +89,6 @@ export function createRecruitmentModal(): RecruitmentModal {
 
   return {
     show(playerGold: number, crabsOwned: number) {
-      quantity = 1;
       currentGold = playerGold;
       currentOwned = crabsOwned;
       purchased = false;
@@ -137,7 +98,7 @@ export function createRecruitmentModal(): RecruitmentModal {
     hide() {
       overlay.style.display = "none";
     },
-    onPurchase(callback: (quantity: number, totalCost: number) => void) {
+    onPurchase(callback: (totalCost: number) => void) {
       purchaseCallback = callback;
     },
     onContinue(callback: () => void) {

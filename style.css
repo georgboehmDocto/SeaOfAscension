@@ -572,53 +572,11 @@ html, body {
   width: 100%;
 }
 
-.recruitment-quantity-row {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.recruitment-qty-btn {
-  width: 36px;
-  height: 36px;
-  background: linear-gradient(180deg, #8b5e3c 0%, #6b3a1f 100%);
-  border: 2px solid #3a1a06;
-  border-radius: 6px;
-  color: #f4d03f;
-  font-size: 20px;
-  font-weight: 700;
-  cursor: pointer;
-  font-family: inherit;
-  text-shadow: 1px 1px 0 #3a1a06;
-  transition: all 0.15s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.recruitment-qty-btn:hover {
-  background: linear-gradient(180deg, #a06e44 0%, #7a4a2a 100%);
-  transform: translateY(-1px);
-}
-
-.recruitment-qty-value {
-  font-size: 28px;
-  font-weight: 800;
-  color: #3a1a06;
-  min-width: 40px;
-  text-align: center;
-}
-
 .recruitment-cost {
   font-size: 16px;
   font-weight: 700;
   color: #b8860b;
   text-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
-}
-
-.recruitment-owned {
-  font-size: 13px;
-  color: #5a3520;
 }
 
 .recruitment-buy-btn {

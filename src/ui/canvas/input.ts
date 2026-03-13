@@ -116,6 +116,8 @@ export function attachCanvasInput(opts: {
       showFloatingText(screenX, screenY, `+${action.goldAmount} gold`, "#FFD700");
     } else if (action.type === "gem/collected") {
       showFloatingText(screenX, screenY, "+1 gem", "#AA55FF");
+    } else if (action.type === "crabs/purchased") {
+      showFloatingText(screenX, screenY, "+1 crab!", "#FF6B4A");
     } else if (action.type === "island/chestOpened") {
       if (action.goldReward > 0) {
         showFloatingText(screenX, screenY - 20, `+${action.goldReward} gold`, "#FFD700");
