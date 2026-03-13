@@ -3,7 +3,6 @@ import type { SpriteSheet } from "../../../../sprites/spritesheet";
 import { getVisibleShipRect } from "./shipLayout";
 import { getNextCrabCost } from "../../../recruitmentModal";
 import { formatResource } from "../../../../helpers/formatResource";
-import { deriveEconomyStats } from "../../../../economy/deriveEconomyStats";
 import { BASE_RUDDER_DISTANCE } from "../../../../constants/constants";
 
 const CRAB_DISPLAY_SIZE = 96;
@@ -93,21 +92,16 @@ export function createCrabOnShipEntity(opts: {
 export function getCrabTooltipText(state: {
   crabs: number;
   ship: any;
-  resources: any;
-  activeEffects?: any[];
-}, nowMs: number): string {
+}): string {
   const count = state.crabs ?? 0;
   const rudderLevel = state.ship.upgrades.rudder?.level ?? 0;
   const distPerClick = BASE_RUDDER_DISTANCE + rudderLevel * 0.5;
-  const econ = deriveEconomyStats(state as any, nowMs);
-  const goldPerClick = distPerClick * econ.goldPerMeter * econ.goldMultiplier;
-  const clicksPerSec = count * CRAB_CLICKS_PER_SEC;
-  const goldPerSec = goldPerClick * clicksPerSec;
+  const distPerSec = count * CRAB_CLICKS_PER_SEC * distPerClick;
   const nextCost = getNextCrabCost(count);
 
   const lines = [
     `Crab Crew (${count})`,
-    `${formatResource(goldPerSec)}/s gold`,
+    `${formatResource(distPerSec)}m/s`,
     `Next: ${formatResource(nextCost)} gold`,
   ];
   return lines.join("\n");

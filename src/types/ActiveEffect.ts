@@ -12,7 +12,7 @@
 export type ActiveEffectKind =
   | "speed"       // Multiplies ship speed
   | "spawnRate"   // Multiplies collectible spawn rate
-  | "goldBoost";  // Multiplies gold earned
+  | "rudderBoost"; // Multiplies distance per rudder click
 
 export type ActiveEffect = {
   id: string;

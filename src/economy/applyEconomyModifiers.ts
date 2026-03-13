@@ -12,12 +12,6 @@ export function applyEconomyModifiers(
       case "mulSpeed":
         return { ...stats, speedMultiplier: stats.speedMultiplier * mod.value };
 
-      case "addGoldPerMeter":
-        return { ...stats, goldPerMeter: stats.goldPerMeter + mod.value };
-
-      case "mulGold":
-        return { ...stats, goldMultiplier: stats.goldMultiplier * mod.value };
-
       default:
         return stats;
     }

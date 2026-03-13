@@ -16,16 +16,6 @@ export function getDefaultShipUpgrades(): Record<
       cost: 50,
       resource: "gold",
     },
-    nets: {
-      level: 0,
-      cost: 100,
-      resource: "gold",
-    },
-    refinery: {
-      level: 0,
-      cost: 1000,
-      resource: "gold",
-    },
     luckBucket: {
       level: 0,
       cost: 200,

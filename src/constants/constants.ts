@@ -14,32 +14,32 @@ export const SHIP_SCALE = 1.5;
 /** Base distance gained per rudder click (before upgrades) */
 export const BASE_RUDDER_DISTANCE = 1;
 
-export const ISLAND_INTERVAL_METERS = 600; // every N meters of distance
+export const ISLAND_INTERVAL_METERS = 200; // every N meters of distance
 
 export type SeaDefinition = {
   name: string;
-  goldThreshold: number;
+  distanceThreshold: number;
 };
 
 export const SEAS: SeaDefinition[] = [
-  { name: "Tutorial Sea", goldThreshold: 0 },
-  { name: "Coral Shallows", goldThreshold: 1_000 },
-  { name: "Merchant's Strait", goldThreshold: 5_000 },
-  { name: "Pirate's Cove", goldThreshold: 25_000 },
-  { name: "Abyssal Deep", goldThreshold: 100_000 },
-  { name: "Sea of Ascension", goldThreshold: 500_000 },
+  { name: "Tutorial Sea", distanceThreshold: 0 },
+  { name: "Coral Shallows", distanceThreshold: 1_000 },
+  { name: "Merchant's Strait", distanceThreshold: 5_000 },
+  { name: "Pirate's Cove", distanceThreshold: 25_000 },
+  { name: "Abyssal Deep", distanceThreshold: 100_000 },
+  { name: "Sea of Ascension", distanceThreshold: 500_000 },
 ];
 
-export function getCurrentSea(lifeTimeGoldEarned: number): SeaDefinition {
+export function getCurrentSea(distance: number): SeaDefinition {
   for (let i = SEAS.length - 1; i >= 0; i--) {
-    if (lifeTimeGoldEarned >= SEAS[i].goldThreshold) return SEAS[i];
+    if (distance >= SEAS[i].distanceThreshold) return SEAS[i];
   }
   return SEAS[0];
 }
 
-export function getNextSea(lifeTimeGoldEarned: number): SeaDefinition | null {
+export function getNextSea(distance: number): SeaDefinition | null {
   for (const sea of SEAS) {
-    if (lifeTimeGoldEarned < sea.goldThreshold) return sea;
+    if (distance < sea.distanceThreshold) return sea;
   }
   return null;
 }

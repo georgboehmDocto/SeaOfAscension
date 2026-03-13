@@ -42,7 +42,7 @@ export function getTooltipModel(
   }
 
   if (entityId === "crab-ship") {
-    const text = getCrabTooltipText(state, _nowMs);
+    const text = getCrabTooltipText(state);
     const lines = text.split("\n");
     return {
       x,

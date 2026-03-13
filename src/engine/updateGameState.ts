@@ -1,5 +1,4 @@
-import { applyResourceGain } from "./applyResourceGain";
-import { computeResourceGain } from "./computeResourceGain";
+import { computeDistanceGain } from "./computeDistanceGain";
 import { deriveEconomyStats } from "../economy/deriveEconomyStats";
 import { GameState } from "../types/GameState";
 import { getIslandType } from "../types/IslandState";
@@ -7,9 +6,9 @@ import { getIslandType } from "../types/IslandState";
 export function updateGameState(
   gameState: GameState,
   deltaInSeconds: number,
-  now: number
+  now: number,
 ) {
-  // Ship is docked at an island — no resource gain
+  // Ship is docked at an island — no movement
   if (gameState.island.docked) {
     return {
       ...gameState,
@@ -18,21 +17,18 @@ export function updateGameState(
   }
 
   const economyStats = deriveEconomyStats(gameState, now);
-
-  const resourceGain = computeResourceGain(
-    economyStats,
-    gameState.resources.lifeTimeGoldEarned,
-    deltaInSeconds
-  );
-
-  const newResources = applyResourceGain(gameState.resources, resourceGain);
+  const distanceGain = computeDistanceGain(economyStats, deltaInSeconds);
+  const newDistance = gameState.resources.distance + distanceGain;
 
   // Check if we've reached the next island
-  const reachedIsland = newResources.distance >= gameState.island.nextIslandAt;
+  const reachedIsland = newDistance >= gameState.island.nextIslandAt;
 
   return {
     ...gameState,
-    resources: newResources,
+    resources: {
+      ...gameState.resources,
+      distance: reachedIsland ? gameState.island.nextIslandAt : newDistance,
+    },
     lastTick: now,
     island: reachedIsland
       ? {

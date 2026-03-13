@@ -58,10 +58,10 @@ export function createDistanceDisplay(): DistanceDisplay {
   }
 
   function update(state: GameState) {
-    const nextSea = getNextSea(state.resources.lifeTimeGoldEarned);
+    const nextSea = getNextSea(state.resources.distance);
     if (nextSea) {
-      const remaining = nextSea.goldThreshold - state.resources.lifeTimeGoldEarned;
-      distanceEl.textContent = formatResource(Math.max(0, Math.floor(remaining)));
+      const remaining = nextSea.distanceThreshold - state.resources.distance;
+      distanceEl.textContent = `${formatResource(Math.max(0, Math.floor(remaining)))}m`;
       nextSeaEl.textContent = nextSea.name;
     } else {
       distanceEl.textContent = "MAX";

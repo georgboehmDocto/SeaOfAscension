@@ -1,9 +1,7 @@
-export type ModifierId = "speed" | "speedMultiplier" | "goldPerMeter" | "goldMultiplier";
+export type ModifierId = "speed" | "speedMultiplier";
 
 export type ModifierUpgradeEffects =
   | { kind: "addBaseSpeed"; amountPerLevel: number; }
   | { kind: "mulSpeed"; factorPerLevel: number }
-  | { kind: "addGoldPerMeter"; amountPerLevel: number }
-  | { kind: "mulGold"; factorPerLevel: number }
   | { kind: "mulSpawnRate"; factorPerLevel: number }
   | { kind: "addRudderDistance"; amountPerLevel: number }

@@ -12,7 +12,6 @@ export function getShipEconomyModifiers(ship: ShipState): EconomyModifier[] {
 
     if (level <= 0) continue;
 
-    // TODO: Move to more centralized place where all resource generators can use
     switch (def.kind) {
       case "addBaseSpeed":
         modifiers.push({
@@ -25,22 +24,6 @@ export function getShipEconomyModifiers(ship: ShipState): EconomyModifier[] {
       case "mulSpeed":
         modifiers.push({
           kind: "mulSpeed",
-          value: Math.pow(def.factorPerLevel, upgrade.level),
-          source: 'ship'
-        });
-        break;
-
-      case "addGoldPerMeter":
-        modifiers.push({
-          kind: "addGoldPerMeter",
-          value: def.amountPerLevel * upgrade.level,
-          source: 'ship'
-        });
-        break;
-
-      case "mulGold":
-        modifiers.push({
-          kind: "mulGold",
           value: Math.pow(def.factorPerLevel, upgrade.level),
           source: 'ship'
         });

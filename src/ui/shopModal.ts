@@ -146,7 +146,7 @@ function getBuffDescription(kind: string, magnitude: number): string {
   switch (kind) {
     case "speed": return `${mult} ship speed`;
     case "spawnRate": return `${mult} fish spawn rate`;
-    case "goldBoost": return `${mult} gold earned`;
+    case "rudderBoost": return `${mult} rudder power`;
     default: return `${mult} ${kind}`;
   }
 }

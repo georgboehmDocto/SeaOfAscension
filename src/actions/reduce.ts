@@ -1,9 +1,7 @@
 import { BASE_RUDDER_DISTANCE, ISLAND_INTERVAL_METERS } from "../constants/constants";
-import { deriveEconomyStats } from "../economy/deriveEconomyStats";
-import { getDefaultCaptainState } from "../defaults/getDefaultCaptainState";
+import { getActiveRudderBoost } from "../economy/getActiveEffectModifiers";
 import type { GameState } from "../types/GameState";
 import type { GameAction } from "./GameAction";
-import { levelUpCaptain } from "./levelUpCaptain";
 import { purchaseShipUpgrade } from "./purchaseShipUpgrade";
 import { getIslandType } from "../types/IslandState";
 
@@ -11,13 +9,6 @@ export function reduce(state: GameState, action: GameAction): GameState {
   switch (action.type) {
     case "ship/upgradePurchased":
       return purchaseShipUpgrade(state, action.upgradeId);
-    case "captain/levelUp":
-      if (!state.captain) return state;
-      return { ...state, captain: levelUpCaptain(state.captain) };
-    case "captain/select": {
-      const initialCaptainState = getDefaultCaptainState(action.captainId);
-      return { ...state, captain: initialCaptainState, event: null };
-    }
     case "fish/collected":
       return {
         ...state,
@@ -39,20 +30,16 @@ export function reduce(state: GameState, action: GameAction): GameState {
     case "rudder/clicked": {
       if (state.island.docked) return state;
       const rudderLevel = state.ship.upgrades.rudder?.level ?? 0;
-      const distPerClick = BASE_RUDDER_DISTANCE + rudderLevel * 0.5;
+      const baseDistPerClick = BASE_RUDDER_DISTANCE + rudderLevel * 0.5;
+      const rudderMult = getActiveRudderBoost(state.activeEffects ?? [], action.nowMs);
+      const distPerClick = baseDistPerClick * rudderMult;
       const newDist = state.resources.distance + distPerClick;
-      // Earn gold proportional to distance, using the same economy stats as passive sailing
-      const econ = deriveEconomyStats(state, action.nowMs);
-      const goldEarned = distPerClick * econ.goldPerMeter * econ.goldMultiplier;
-      // Check if we hit the next island
       const hitIsland = newDist >= state.island.nextIslandAt;
       return {
         ...state,
         resources: {
           ...state.resources,
           distance: hitIsland ? state.island.nextIslandAt : newDist,
-          gold: state.resources.gold + goldEarned,
-          lifeTimeGoldEarned: state.resources.lifeTimeGoldEarned + goldEarned,
         },
         island: hitIsland
           ? { ...state.island, docked: true, chestOpened: false, shopItemPurchased: false }

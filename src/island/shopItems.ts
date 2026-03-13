@@ -28,7 +28,6 @@ export type ShopItem = {
 const FIVE_MINUTES = 5 * 60 * 1000;
 const FIFTEEN_MINUTES = 15 * 60 * 1000;
 const THIRTY_MINUTES = 30 * 60 * 1000;
-const ONE_HOUR = 60 * 60 * 1000;
 
 const SHOP_ITEM_POOL: ShopItem[] = [
   // --- Exchange items ---
@@ -83,12 +82,12 @@ const SHOP_ITEM_POOL: ShopItem[] = [
     effect: { type: "timedBuff", buffKind: "spawnRate", magnitude: 2, durationMs: FIFTEEN_MINUTES },
   },
   {
-    id: "pineapple-gold",
+    id: "pineapple-rudder",
     name: "Golden Pineapple",
-    description: "Earn 50% more gold for 30 minutes.",
+    description: "Double rudder power for 30 minutes.",
     cost: 400,
     iconPath: "/fruits-pineapple.png",
-    effect: { type: "timedBuff", buffKind: "goldBoost", magnitude: 1.5, durationMs: THIRTY_MINUTES },
+    effect: { type: "timedBuff", buffKind: "rudderBoost", magnitude: 2, durationMs: THIRTY_MINUTES },
   },
   {
     id: "strawberry-speed",
@@ -107,12 +106,12 @@ const SHOP_ITEM_POOL: ShopItem[] = [
     effect: { type: "timedBuff", buffKind: "spawnRate", magnitude: 3, durationMs: FIVE_MINUTES },
   },
   {
-    id: "pear-gold",
+    id: "pear-rudder",
     name: "Gilded Pear",
-    description: "Double gold earned for 1 hour.",
+    description: "Triple rudder power for 15 minutes!",
     cost: 800,
     iconPath: "/fruits-pear.png",
-    effect: { type: "timedBuff", buffKind: "goldBoost", magnitude: 2, durationMs: ONE_HOUR },
+    effect: { type: "timedBuff", buffKind: "rudderBoost", magnitude: 3, durationMs: FIFTEEN_MINUTES },
   },
   {
     id: "papaya-speed",

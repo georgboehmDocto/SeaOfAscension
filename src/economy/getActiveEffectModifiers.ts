@@ -4,7 +4,7 @@ import type { EconomyModifier } from "../types/EconomyStats";
 
 /**
  * Convert active timed effects into economy modifiers.
- * Only economy-affecting effects (speed, goldBoost) are handled here.
+ * Only economy-affecting effects (speed) are handled here.
  * Spawn rate effects are handled separately in main.ts.
  */
 export function getActiveEffectModifiers(
@@ -24,18 +24,26 @@ export function getActiveEffectModifiers(
           source: `effect:${effect.id}`,
         });
         break;
-      case "goldBoost":
-        modifiers.push({
-          kind: "mulGold",
-          value: effect.magnitude,
-          source: `effect:${effect.id}`,
-        });
-        break;
       // spawnRate is not an economy modifier — handled in main.ts
     }
   }
 
   return modifiers;
+}
+
+/** Get the combined rudder boost multiplier from active effects */
+export function getActiveRudderBoost(
+  effects: ActiveEffect[],
+  nowMs: number,
+): number {
+  let multiplier = 1;
+  for (const effect of effects) {
+    if (!isEffectActive(effect, nowMs)) continue;
+    if (effect.kind === "rudderBoost") {
+      multiplier *= effect.magnitude;
+    }
+  }
+  return multiplier;
 }
 
 /** Get the combined spawn rate multiplier from active effects */

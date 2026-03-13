@@ -138,7 +138,7 @@ export function createResourcesPanel(): ResourcesPanel {
       Math.floor(state.resources.ascendencyGems)
     );
 
-    const currentSea = getCurrentSea(state.resources.lifeTimeGoldEarned);
+    const currentSea = getCurrentSea(state.resources.distance);
     seaTitleEl.textContent = currentSea.name;
   }
 

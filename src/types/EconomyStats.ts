@@ -1,15 +1,12 @@
 export type EconomyStats = {
   baseSpeed: number;
   speedMultiplier: number;
-  goldPerMeter: number;
-  goldMultiplier: number;
 };
 
-export type AdditiveEconomyModifier = | "addBaseSpeed" | "addGoldPerMeter"
-export type MultiplicativeEconomyModifier = | "mulSpeed" | "mulGold";
+export type AdditiveEconomyModifier = "addBaseSpeed";
+export type MultiplicativeEconomyModifier = "mulSpeed";
 
-export type EconomyModifierKind = AdditiveEconomyModifier | MultiplicativeEconomyModifier
-  
+export type EconomyModifierKind = AdditiveEconomyModifier | MultiplicativeEconomyModifier;
 
 export type EconomyModifier = {
   kind: EconomyModifierKind;

@@ -11,7 +11,7 @@ describe("tick", () => {
     expect(result).toBe(state);
   });
 
-  it("increases distance and gold when time has passed", () => {
+  it("increases distance when time has passed", () => {
     const lastTick = 0;
     const now = 10_000; // 10 seconds
 
@@ -26,11 +26,8 @@ describe("tick", () => {
     const result = tick(state, now);
 
     expect(result.resources.distance).toBe(10);
-
-    expect(result.resources.gold).toBe(10);
-    expect(result.resources.lifeTimeGoldEarned).toBe(10);
-
-    expect(result.resources.ascendencyGems).toBe(0)
+    // Gold is no longer earned from distance
+    expect(result.resources.gold).toBe(0);
   });
 
   it("updates lastTick to the new timestamp", () => {

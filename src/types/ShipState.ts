@@ -9,8 +9,6 @@ export type ShipBaseStats = {
 export type ShipStatsState = {
   baseSpeed: number;
   speedMultiplier: number;
-  goldPerMeter: number;
-  goldMultiplier: number;
 }
 
 export type ShipUpgradeState = {
