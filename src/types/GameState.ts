@@ -7,6 +7,7 @@ import { CrewMemberId, CrewMemberState } from "./CrewMember";
 import { IslandState, getDefaultIslandState } from "./IslandState";
 import { Resources } from "./Resources";
 import { ShipState } from "./ShipState";
+import { ActiveEffect } from "./ActiveEffect";
 
 export type GameState = {
   version: number;
@@ -18,6 +19,7 @@ export type GameState = {
   lastTick: number; // milliseconds
   crew?: Record<CrewMemberId, CrewMemberState>;
   island: IslandState;
+  activeEffects: ActiveEffect[];
 };
 
 export const initialGameState: GameState = {
@@ -32,4 +34,5 @@ export const initialGameState: GameState = {
   battle: {} as BattleState, // Not yet implemented
   event: null,
   island: getDefaultIslandState(),
+  activeEffects: [],
 };

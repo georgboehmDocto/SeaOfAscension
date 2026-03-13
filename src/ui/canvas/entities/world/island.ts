@@ -10,18 +10,67 @@ import { rectAt } from "../../../../hitTest/rectHelpers";
 const CHEST_DISPLAY_SIZE = 96;
 const CHEST_ANIM_FRAME_MS = 100;
 const ISLAND_SCALE = 1;
-const SLIDE_DURATION_MS = 1500;
+export const SLIDE_DURATION_MS = 1500;
 
 export type IslandAnimState = {
   animStartMs: number | null;
   animComplete: boolean;
   slideStartMs: number | null;
   slideOutStartMs: number | null;
+  /** Set true when loading into a docked state (skip slide-in) */
+  skipSlideIn: boolean;
 };
 
 /** Which side the next island appears on */
 export function getIslandSide(islandsVisited: number): "left" | "right" {
   return islandsVisited % 2 === 0 ? "right" : "left";
+}
+
+export function getIslandX(
+  canvas: HTMLCanvasElement,
+  mapWidth: number,
+  side: "left" | "right",
+  progress: number,
+) {
+  const css = canvas.getBoundingClientRect();
+  if (side === "left") {
+    const fullyOff = -mapWidth;
+    const finalX = -mapWidth * 0.3;
+    return fullyOff + (finalX - fullyOff) * progress;
+  } else {
+    const fullyOff = css.width;
+    const finalX = css.width - mapWidth * 0.7;
+    return fullyOff + (finalX - fullyOff) * progress;
+  }
+}
+
+export function getIslandY(canvas: HTMLCanvasElement, mapHeight: number) {
+  const css = canvas.getBoundingClientRect();
+  return css.height / 2 - mapHeight / 2;
+}
+
+/** Returns 0 (offscreen) to 1 (fully in) */
+export function getSlideInProgress(anim: IslandAnimState, nowMs: number): number {
+  if (anim.skipSlideIn) return 1;
+  if (anim.slideStartMs === null) return 0;
+  const elapsed = nowMs - anim.slideStartMs;
+  const t = Math.min(elapsed / SLIDE_DURATION_MS, 1);
+  return t * (2 - t); // ease-out quad
+}
+
+/** Returns 0 (still docked) to 1 (fully offscreen) */
+export function getSlideOutProgress(anim: IslandAnimState, nowMs: number): number {
+  if (anim.slideOutStartMs === null) return 0;
+  const elapsed = nowMs - anim.slideOutStartMs;
+  const t = Math.min(elapsed / SLIDE_DURATION_MS, 1);
+  return t * t; // ease-in quad
+}
+
+export function getEffectiveProgress(anim: IslandAnimState, nowMs: number): number {
+  if (anim.slideOutStartMs !== null) {
+    return 1 - getSlideOutProgress(anim, nowMs);
+  }
+  return getSlideInProgress(anim, nowMs);
 }
 
 export function createIslandEntity(opts: {
@@ -33,60 +82,13 @@ export function createIslandEntity(opts: {
   const anim = opts.animState;
   const mapSize = getTiledMapSize(opts.islandMap, ISLAND_SCALE);
 
-  /** Returns 0 (offscreen) to 1 (fully in) */
-  function getSlideInProgress(nowMs: number): number {
-    if (anim.slideStartMs === null) return 0;
-    const elapsed = nowMs - anim.slideStartMs;
-    const t = Math.min(elapsed / SLIDE_DURATION_MS, 1);
-    return t * (2 - t); // ease-out quad
-  }
-
-  /** Returns 0 (still docked) to 1 (fully offscreen) */
-  function getSlideOutProgress(nowMs: number): number {
-    if (anim.slideOutStartMs === null) return 0;
-    const elapsed = nowMs - anim.slideOutStartMs;
-    const t = Math.min(elapsed / SLIDE_DURATION_MS, 1);
-    return t * t; // ease-in quad
-  }
-
-  function getEffectiveProgress(nowMs: number): number {
-    if (anim.slideOutStartMs !== null) {
-      // Sliding out: go from 1 back to 0
-      return 1 - getSlideOutProgress(nowMs);
-    }
-    return getSlideInProgress(nowMs);
-  }
-
-  function getIslandX(
-    canvas: HTMLCanvasElement,
-    side: "left" | "right",
-    progress: number,
-  ) {
-    const css = canvas.getBoundingClientRect();
-    if (side === "left") {
-      const fullyOff = -mapSize.width;
-      const finalX = -mapSize.width * 0.3;
-      return fullyOff + (finalX - fullyOff) * progress;
-    } else {
-      const fullyOff = css.width;
-      const finalX = css.width - mapSize.width * 0.7;
-      return fullyOff + (finalX - fullyOff) * progress;
-    }
-  }
-
-  function getIslandY(canvas: HTMLCanvasElement) {
-    const css = canvas.getBoundingClientRect();
-    return css.height / 2 - mapSize.height / 2;
-  }
-
   function getChestPos(
     canvas: HTMLCanvasElement,
     side: "left" | "right",
     progress: number,
   ) {
-    const ix = getIslandX(canvas, side, progress);
-    const iy = getIslandY(canvas);
-    // Place chest more toward the visible center of the island
+    const ix = getIslandX(canvas, mapSize.width, side, progress);
+    const iy = getIslandY(canvas, mapSize.height);
     const cx = side === "left"
       ? ix + mapSize.width * 0.55
       : ix + mapSize.width * 0.45;
@@ -101,14 +103,14 @@ export function createIslandEntity(opts: {
     tooltip: "Treasure Island - Click the chest!",
 
     getPickRect: ({ canvas, state, nowMs }) => {
-      if (!state.island.docked) {
+      if (!state.island.docked || state.island.islandType !== "treasure") {
         return rectAt(-9999, -9999, { width: 0, height: 0 });
       }
       if (anim.slideOutStartMs !== null) {
         return rectAt(-9999, -9999, { width: 0, height: 0 });
       }
       const side = getIslandSide(state.island.islandsVisited);
-      const progress = getEffectiveProgress(nowMs);
+      const progress = getEffectiveProgress(anim, nowMs);
       if (progress < 0.9) {
         return rectAt(-9999, -9999, { width: 0, height: 0 });
       }
@@ -120,23 +122,24 @@ export function createIslandEntity(opts: {
     },
 
     draw: ({ ctx, canvas, state, nowMs }) => {
-      // Still drawing during slide-out even though docked may be false
-      const isSliding = anim.slideOutStartMs !== null && getSlideOutProgress(nowMs) < 1;
+      // Only draw for treasure islands
+      if (state.island.islandType !== "treasure") return;
+
+      const isSliding = anim.slideOutStartMs !== null && getSlideOutProgress(anim, nowMs) < 1;
       if (!state.island.docked && !isSliding) return;
 
-      if (anim.slideStartMs === null) {
+      if (anim.slideStartMs === null && !anim.skipSlideIn) {
         anim.slideStartMs = nowMs;
       }
 
       const side = getIslandSide(
-        // During slide-out, use the same side as the island that just left
         isSliding && !state.island.docked
           ? state.island.islandsVisited - 1
           : state.island.islandsVisited,
       );
-      const progress = getEffectiveProgress(nowMs);
-      const ix = getIslandX(canvas, side, progress);
-      const iy = getIslandY(canvas);
+      const progress = getEffectiveProgress(anim, nowMs);
+      const ix = getIslandX(canvas, mapSize.width, side, progress);
+      const iy = getIslandY(canvas, mapSize.height);
 
       renderTiledMap(ctx, opts.islandMap, ix, iy, ISLAND_SCALE, nowMs);
 
@@ -198,6 +201,7 @@ export function createIslandEntity(opts: {
 
     onClick: (_state, nowMs) => {
       if (!_state.island.docked) return null;
+      if (_state.island.islandType !== "treasure") return null;
       if (_state.island.chestOpened) return null;
 
       if (anim.animStartMs === null) {

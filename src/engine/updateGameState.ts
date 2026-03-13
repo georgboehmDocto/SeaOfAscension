@@ -2,6 +2,7 @@ import { applyResourceGain } from "./applyResourceGain";
 import { computeResourceGain } from "./computeResourceGain";
 import { deriveEconomyStats } from "../economy/deriveEconomyStats";
 import { GameState } from "../types/GameState";
+import { getIslandType } from "../types/IslandState";
 
 export function updateGameState(
   gameState: GameState,
@@ -34,7 +35,15 @@ export function updateGameState(
     resources: newResources,
     lastTick: now,
     island: reachedIsland
-      ? { ...gameState.island, docked: true, chestOpened: false }
+      ? {
+          ...gameState.island,
+          docked: true,
+          chestOpened: false,
+          shopItemPurchased: false,
+          purchasedShopItemId: null,
+          shopItemIds: null,
+          islandType: getIslandType(gameState.island.islandsVisited),
+        }
       : gameState.island,
   };
 }

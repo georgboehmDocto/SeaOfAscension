@@ -84,6 +84,23 @@ function migrate(input: unknown): unknown {
     s.island.chestOpened = false;
   }
 
+  // Ensure new island fields exist (shop island migration)
+  if (s.island && s.island.islandType === undefined) {
+    s.island.islandType = "treasure";
+    s.island.shopItemPurchased = false;
+    s.island.purchasedShopItemId = null;
+    s.island.shopItemIds = null;
+  }
+  if (s.island && s.island.shopItemIds === undefined) {
+    s.island.shopItemIds = null;
+    s.island.purchasedShopItemId = null;
+  }
+
+  // Ensure activeEffects exists
+  if (!s.activeEffects) {
+    s.activeEffects = [];
+  }
+
   return s;
 }
 

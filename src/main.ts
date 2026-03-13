@@ -19,6 +19,8 @@ import {
 import { tick } from "./engine/tick";
 import { loadAssets } from "./loadAssets";
 import { initialGameState } from "./types/GameState";
+import { getIslandType } from "./types/IslandState";
+import { getActiveEffects } from "./types/ActiveEffect";
 import { attachCanvasInput, type TooltipAnchor } from "./ui/canvas/input";
 import { SpriteSheet } from "./sprites/spritesheet";
 import { createWorldRenderer } from "./ui/canvas/worldRenderer";
@@ -29,11 +31,16 @@ import { createResourcesPanel } from "./ui/resourcesPanel";
 import { createDistanceDisplay } from "./ui/distanceDisplay";
 import { createFishEntity } from "./ui/canvas/entities/world/fish";
 import { createGemEntity } from "./ui/canvas/entities/world/gem";
-import { createIslandEntity, type IslandAnimState } from "./ui/canvas/entities/world/island";
+import { createIslandEntity, type IslandAnimState, SLIDE_DURATION_MS } from "./ui/canvas/entities/world/island";
+import { createShopIslandEntity } from "./ui/canvas/entities/world/shopIsland";
 import { createIslandModal } from "./ui/islandModal";
+import { createShopModal } from "./ui/shopModal";
 import { createIslandApproachIndicator } from "./ui/islandApproachIndicator";
+import { createActiveEffectsHud } from "./ui/activeEffectsHud";
 import { loadTmjMap } from "./tmx/loadTmjMap";
 import { generateIslandReward } from "./island/generateReward";
+import { pickShopItems, getShopItemsById, type ShopItem } from "./island/shopItems";
+import { getActiveSpawnRateMultiplier } from "./economy/getActiveEffectModifiers";
 
 // --- DOM Elements ---
 const controlsPanel = document.getElementById("controls-panel")!;
@@ -62,12 +69,34 @@ if (!state.island) {
       docked: false,
       chestOpened: false,
       islandsVisited: 0,
+      islandType: "treasure",
+      shopItemPurchased: false,
+      purchasedShopItemId: null,
+      shopItemIds: null,
     },
   };
 }
 
-// If we reload while docked with chest already opened, re-show the modal
-let pendingModalOnLoad = state.island.docked && state.island.chestOpened;
+// Migrate: ensure new island fields exist for saves from before shop update
+if (state.island.islandType === undefined) {
+  state = {
+    ...state,
+    island: {
+      ...state.island,
+      islandType: getIslandType(state.island.islandsVisited),
+      shopItemPurchased: state.island.shopItemPurchased ?? false,
+    },
+  };
+}
+
+// Migrate: ensure activeEffects exists
+if (!state.activeEffects) {
+  state = { ...state, activeEffects: [] };
+}
+
+// If we reload while docked with chest already opened (treasure) or shop visited, re-show modal
+const pendingTreasureModal = state.island.docked && state.island.islandType === "treasure" && state.island.chestOpened;
+const pendingShopModal = state.island.docked && state.island.islandType === "shop";
 
 let lastSaveAt = Date.now();
 let lastNowMs = Date.now();
@@ -77,7 +106,9 @@ const tooltip = createTooltipController();
 const resourcesPanel = createResourcesPanel();
 const distanceDisplay = createDistanceDisplay();
 const islandModal = createIslandModal();
+const shopModal = createShopModal();
 const islandApproach = createIslandApproachIndicator();
+const activeEffectsHud = createActiveEffectsHud();
 
 const canvas = document.getElementById("world") as HTMLCanvasElement;
 
@@ -92,6 +123,8 @@ const assets = await loadAssets({
   chestGold: "/buried chest-opening-half buried-gold.png",
   chestEmpty: "/buried chest-opening-half buried.png",
   beach: "/beach - standard - with thick foam - spritesheet.png",
+  npcIdle: "/npc-idle.png",
+  shopBuilding: "/house-fisherman house.png",
   fish0: "/fish/fish_0.png",
   fish1: "/fish/fish_1.png",
   fish2: "/fish/fish_2.png",
@@ -158,16 +191,21 @@ const chestEmptySheet: SpriteSheet = {
   frameCount: CHEST_FRAME_COUNT,
 };
 
-// --- Island Map ---
-const islandMap = await loadTmjMap("/island_treasure.tmj", {
+// --- Island Maps ---
+const beachImages = {
   "beach - standard - with thick foam - spritesheet.png": assets.beach,
-});
+};
 
+const islandMap = await loadTmjMap("/island_treasure.tmj", beachImages);
+const shopIslandMap = await loadTmjMap("/shop_island.tmj", beachImages);
+
+// Shared animation state for both island types (only one shows at a time)
 const islandAnimState: IslandAnimState = {
   animStartMs: null,
   animComplete: false,
   slideStartMs: null,
   slideOutStartMs: null,
+  skipSlideIn: state.island.docked, // skip slide-in if loading into docked state
 };
 
 const islandEntity = createIslandEntity({
@@ -177,6 +215,34 @@ const islandEntity = createIslandEntity({
   animState: islandAnimState,
 });
 
+// --- Shop NPC click state ---
+let shopModalShowing = false;
+let shopNpcClicked = false;
+let currentShopItems: [ShopItem, ShopItem] | null = null;
+
+const shopIslandEntity = createShopIslandEntity({
+  shopMap: shopIslandMap,
+  npcImg: assets.npcIdle,
+  shopImg: assets.shopBuilding,
+  animState: islandAnimState,
+  onNpcClick: () => {
+    if (shopNpcClicked || shopModalShowing) return;
+    shopNpcClicked = true;
+    shopModalShowing = true;
+    currentShopItems = pickShopItems();
+    // Persist selected items so they survive page refresh
+    state = {
+      ...state,
+      island: {
+        ...state.island,
+        shopItemIds: [currentShopItems[0].id, currentShopItems[1].id],
+      },
+    };
+    saveToLocalStorage(state);
+    shopModal.show(currentShopItems, state.resources.gold, state.resources.ascendencyGems);
+  },
+});
+
 const world = createWorldRenderer(canvas, {
   waterImg,
   shipSheet,
@@ -184,8 +250,9 @@ const world = createWorldRenderer(canvas, {
   bucketImg,
 });
 
-// Add island entity to the world
+// Add island entities to the world
 world.addEntity(islandEntity);
+world.addEntity(shopIslandEntity);
 
 computeOpaqueBounds(mastSheet);
 computeOpaqueBounds(shipSheet);
@@ -201,21 +268,66 @@ attachCanvasInput({
   setTooltipAnchor: (a) => (tooltipAnchor = a),
 });
 
-// --- Island Modal ---
+// --- Island Modal (treasure) ---
 let modalShowing = false;
 
-// Re-show modal if we reloaded while docked with chest already opened
-if (pendingModalOnLoad) {
+if (pendingTreasureModal) {
   const reward = generateIslandReward(state.island.islandsVisited);
   modalShowing = true;
-  // Small delay so the island slides in first
-  setTimeout(() => islandModal.show(reward.gold, reward.gems), 1600);
+  setTimeout(() => islandModal.show(reward.gold, reward.gems), 300);
 }
 
 islandModal.onContinue(() => {
   islandModal.hide();
   modalShowing = false;
+  startIslandDeparture();
+});
 
+// --- Shop Modal ---
+if (pendingShopModal) {
+  shopModalShowing = true;
+  shopNpcClicked = true;
+  // Restore persisted items, or pick fresh ones if missing
+  if (state.island.shopItemIds) {
+    currentShopItems = getShopItemsById(state.island.shopItemIds) ?? pickShopItems();
+  } else {
+    currentShopItems = pickShopItems();
+    state = {
+      ...state,
+      island: { ...state.island, shopItemIds: [currentShopItems[0].id, currentShopItems[1].id] },
+    };
+  }
+  const items = currentShopItems;
+  const purchasedId = state.island.purchasedShopItemId;
+  setTimeout(() => {
+    shopModal.show(items, state.resources.gold, state.resources.ascendencyGems);
+    if (purchasedId) {
+      shopModal.updateAfterPurchase(purchasedId, state.resources.gold, state.resources.ascendencyGems);
+    }
+  }, 300);
+}
+
+shopModal.onPurchase((item) => {
+  const nowMs = Date.now();
+  state = dispatch(state, nowMs, {
+    type: "shop/itemPurchased",
+    itemId: item.id,
+    itemName: item.name,
+    iconPath: item.iconPath,
+    goldCost: item.cost,
+    effect: item.effect,
+    nowMs,
+  });
+  shopModal.updateAfterPurchase(item.id, state.resources.gold, state.resources.ascendencyGems);
+});
+
+shopModal.onContinue(() => {
+  shopModal.hide();
+  shopModalShowing = false;
+  startIslandDeparture();
+});
+
+function startIslandDeparture() {
   // Start slide-out animation
   islandAnimState.slideOutStartMs = Date.now();
 
@@ -226,16 +338,21 @@ islandModal.onContinue(() => {
     islandAnimState.animComplete = false;
     islandAnimState.slideStartMs = null;
     islandAnimState.slideOutStartMs = null;
-  }, 1500);
-});
+    islandAnimState.skipSlideIn = false;
+    shopNpcClicked = false;
+    currentShopItems = null;
+  }, SLIDE_DURATION_MS);
+}
 
 // --- Spawn Manager ---
 let nextSpawnId = 0;
 let lastSpawnAttemptMs = Date.now();
 
-function getSpawnRateMultiplier(): number {
+function getSpawnRateMultiplier(nowMs: number): number {
   const luckBucketLevel = state.ship.upgrades.luckBucket?.level ?? 0;
-  return Math.pow(1.2, luckBucketLevel);
+  const upgradeMultiplier = Math.pow(1.2, luckBucketLevel);
+  const effectMultiplier = getActiveSpawnRateMultiplier(state.activeEffects ?? [], nowMs);
+  return upgradeMultiplier * effectMultiplier;
 }
 
 function totalCollectiblesOnScreen(): number {
@@ -249,7 +366,7 @@ function trySpawn(nowMs: number) {
   // Don't spawn collectibles while docked at an island
   if (state.island.docked) return;
 
-  const spawnMultiplier = getSpawnRateMultiplier();
+  const spawnMultiplier = getSpawnRateMultiplier(nowMs);
   const effectiveInterval = BASE_SPAWN_INTERVAL_MS / spawnMultiplier;
 
   if (nowMs - lastSpawnAttemptMs < effectiveInterval) return;
@@ -317,6 +434,12 @@ function start() {
     const nowMs = Date.now();
     lastNowMs = nowMs;
 
+    // Prune expired effects from state (they persist in save until cleaned up)
+    const activeEffects = getActiveEffects(state.activeEffects ?? [], nowMs);
+    if (activeEffects.length !== (state.activeEffects ?? []).length) {
+      state = { ...state, activeEffects };
+    }
+
     state = tick(state, nowMs);
 
     if (nowMs - lastSaveAt > AUTOSAVE_INTERVAL_MS) {
@@ -330,9 +453,16 @@ function start() {
     resourcesPanel.update(state);
     distanceDisplay.update(state);
     islandApproach.update(state);
+    activeEffectsHud.update(state.activeEffects ?? [], nowMs);
 
-    // Auto-dispatch chest opened when animation completes
-    if (islandAnimState.animComplete && state.island.docked && !state.island.chestOpened && !modalShowing) {
+    // --- Treasure island: auto-dispatch chest opened when animation completes ---
+    if (
+      state.island.islandType === "treasure" &&
+      islandAnimState.animComplete &&
+      state.island.docked &&
+      !state.island.chestOpened &&
+      !modalShowing
+    ) {
       const reward = generateIslandReward(state.island.islandsVisited);
       state = dispatch(state, nowMs, {
         type: "island/chestOpened",

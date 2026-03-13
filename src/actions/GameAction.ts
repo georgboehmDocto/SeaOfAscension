@@ -1,6 +1,7 @@
 import { ShipUpgradeId } from "../constants/shipUpgrades";
 import { CaptainId } from "../types/CaptainState";
 import { CrewMemberId } from "../types/CrewMember";
+import type { ShopItemEffect } from "../island/shopItems";
 
 export type GameAction =
   | { type: "ship/upgradePurchased"; upgradeId: ShipUpgradeId }
@@ -10,4 +11,13 @@ export type GameAction =
   | { type: "fish/collected"; goldAmount: number }
   | { type: "gem/collected" }
   | { type: "island/chestOpened"; goldReward: number; gemReward: number }
-  | { type: "island/continue" };
+  | { type: "island/continue" }
+  | {
+      type: "shop/itemPurchased";
+      itemId: string;
+      itemName: string;
+      iconPath: string;
+      goldCost: number;
+      effect: ShopItemEffect;
+      nowMs: number;
+    };
