@@ -72,5 +72,9 @@ export function createWorldRenderer(
     return lastEntities.filter((e) => e.id.startsWith(prefix)).length;
   }
 
-  return { draw, getEntities, addEntity, removeEntity, countEntitiesWithPrefix, canvas };
+  function hasEntity(id: EntityId): boolean {
+    return lastEntities.some((e) => e.id === id);
+  }
+
+  return { draw, getEntities, addEntity, removeEntity, countEntitiesWithPrefix, hasEntity, canvas };
 }

@@ -1,6 +1,6 @@
 import { ISLAND_INTERVAL_METERS } from "../constants/constants";
 
-export type IslandType = "treasure" | "shop";
+export type IslandType = "treasure" | "shop" | "recruitment";
 
 export type IslandState = {
   /** Distance at which the next island spawns */
@@ -21,9 +21,17 @@ export type IslandState = {
   shopItemIds: [string, string] | null;
 };
 
-/** Determine island type based on visit count: every 3rd island is a shop */
+/** Determine island type based on visit count:
+ *  - First island (0) is recruitment
+ *  - Every 3rd island after that is a shop
+ *  - Every 5th island is recruitment
+ *  - Otherwise treasure
+ */
 export function getIslandType(islandsVisited: number): IslandType {
-  return islandsVisited > 0 && islandsVisited % 3 === 0 ? "shop" : "treasure";
+  if (islandsVisited === 0) return "recruitment";
+  if (islandsVisited % 5 === 0) return "recruitment";
+  if (islandsVisited % 3 === 0) return "shop";
+  return "treasure";
 }
 
 export function getDefaultIslandState(): IslandState {
@@ -32,7 +40,7 @@ export function getDefaultIslandState(): IslandState {
     docked: false,
     chestOpened: false,
     islandsVisited: 0,
-    islandType: "treasure",
+    islandType: getIslandType(0),
     shopItemPurchased: false,
     purchasedShopItemId: null,
     shopItemIds: null,

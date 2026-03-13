@@ -20,6 +20,7 @@ export type GameState = {
   crew?: Record<CrewMemberId, CrewMemberState>;
   island: IslandState;
   activeEffects: ActiveEffect[];
+  crabs: number;
 };
 
 export const initialGameState: GameState = {
@@ -35,4 +36,5 @@ export const initialGameState: GameState = {
   event: null,
   island: getDefaultIslandState(),
   activeEffects: [],
+  crabs: 0,
 };

@@ -104,6 +104,11 @@ function migrate(input: unknown): unknown {
     s.activeEffects = [];
   }
 
+  // Ensure crabs field exists
+  if (s.crabs === undefined) {
+    s.crabs = 0;
+  }
+
   return s;
 }
 

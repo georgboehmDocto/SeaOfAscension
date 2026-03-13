@@ -528,6 +528,134 @@ html, body {
   filter: drop-shadow(2px 2px 2px rgba(0, 0, 0, 0.3));
 }
 
+/* --- Recruitment Modal --- */
+.recruitment-modal-frame {
+  min-width: 380px;
+  max-width: 440px;
+}
+
+.recruitment-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.recruitment-crab-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.recruitment-crab-img {
+  width: 80px;
+  height: 80px;
+  image-rendering: pixelated;
+  filter: drop-shadow(2px 2px 2px rgba(0, 0, 0, 0.3));
+}
+
+.recruitment-crab-effect {
+  font-size: 14px;
+  font-weight: 600;
+  color: #2d6b1e;
+  padding: 4px 10px;
+  background: rgba(74, 143, 63, 0.12);
+  border-radius: 4px;
+}
+
+.recruitment-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.recruitment-quantity-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.recruitment-qty-btn {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(180deg, #8b5e3c 0%, #6b3a1f 100%);
+  border: 2px solid #3a1a06;
+  border-radius: 6px;
+  color: #f4d03f;
+  font-size: 20px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  text-shadow: 1px 1px 0 #3a1a06;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.recruitment-qty-btn:hover {
+  background: linear-gradient(180deg, #a06e44 0%, #7a4a2a 100%);
+  transform: translateY(-1px);
+}
+
+.recruitment-qty-value {
+  font-size: 28px;
+  font-weight: 800;
+  color: #3a1a06;
+  min-width: 40px;
+  text-align: center;
+}
+
+.recruitment-cost {
+  font-size: 16px;
+  font-weight: 700;
+  color: #b8860b;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
+}
+
+.recruitment-owned {
+  font-size: 13px;
+  color: #5a3520;
+}
+
+.recruitment-buy-btn {
+  width: 100%;
+  max-width: 200px;
+  padding: 10px 24px;
+  background: linear-gradient(180deg, #8b5e3c 0%, #6b3a1f 100%);
+  border: 2px solid #3a1a06;
+  border-radius: 6px;
+  color: #f4d03f;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  text-shadow: 1px 1px 0 #3a1a06;
+  transition: all 0.15s ease;
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 1px 2px rgba(255, 220, 150, 0.15);
+}
+
+.recruitment-buy-btn:hover:not(:disabled) {
+  background: linear-gradient(180deg, #a06e44 0%, #7a4a2a 100%);
+  transform: translateY(-1px);
+}
+
+.recruitment-buy-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.recruitment-buy-btn.purchased {
+  background: linear-gradient(180deg, #4a8f3f 0%, #2d6b1e 100%);
+  border-color: #1a4012;
+  color: #fff;
+}
+
 /* --- Active Effects HUD --- */
 #active-effects-hud {
   position: fixed;

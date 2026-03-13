@@ -36,6 +36,9 @@ import { createShopIslandEntity } from "./ui/canvas/entities/world/shopIsland";
 import { createRudderEntity } from "./ui/canvas/entities/world/rudder";
 import { createIslandModal } from "./ui/islandModal";
 import { createShopModal } from "./ui/shopModal";
+import { createRecruitmentModal } from "./ui/recruitmentModal";
+import { createRecruitmentIslandEntity } from "./ui/canvas/entities/world/recruitmentIsland";
+import { createCrabOnShipEntity } from "./ui/canvas/entities/world/crabOnShip";
 import { createIslandApproachIndicator } from "./ui/islandApproachIndicator";
 import { createActiveEffectsHud } from "./ui/activeEffectsHud";
 import { loadTmjMap } from "./tmx/loadTmjMap";
@@ -95,9 +98,15 @@ if (!state.activeEffects) {
   state = { ...state, activeEffects: [] };
 }
 
-// If we reload while docked with chest already opened (treasure) or shop visited, re-show modal
+// Migrate: ensure crabs field exists
+if (state.crabs === undefined) {
+  state = { ...state, crabs: 0 };
+}
+
+// If we reload while docked with chest already opened (treasure) or shop/recruitment visited, re-show modal
 const pendingTreasureModal = state.island.docked && state.island.islandType === "treasure" && state.island.chestOpened;
 const pendingShopModal = state.island.docked && state.island.islandType === "shop";
+const pendingRecruitmentModal = state.island.docked && state.island.islandType === "recruitment";
 
 let lastSaveAt = Date.now();
 let lastNowMs = Date.now();
@@ -108,6 +117,7 @@ const resourcesPanel = createResourcesPanel();
 const distanceDisplay = createDistanceDisplay();
 const islandModal = createIslandModal();
 const shopModal = createShopModal();
+const recruitmentModal = createRecruitmentModal();
 const islandApproach = createIslandApproachIndicator();
 const activeEffectsHud = createActiveEffectsHud();
 
@@ -128,6 +138,7 @@ const assets = await loadAssets({
   rudderRight: "/rudder_right.png",
   npcIdle: "/npc-idle.png",
   shopBuilding: "/house-fisherman house.png",
+  crab: "/crab.png",
   fish0: "/fish/fish_0.png",
   fish1: "/fish/fish_1.png",
   fish2: "/fish/fish_2.png",
@@ -246,6 +257,22 @@ const shopIslandEntity = createShopIslandEntity({
   },
 });
 
+// --- Recruitment Island ---
+let recruitmentModalShowing = false;
+let recruitmentNpcClicked = false;
+
+const recruitmentIslandEntity = createRecruitmentIslandEntity({
+  islandMap: islandMap, // reuse treasure island map for now
+  crabImg: assets.crab,
+  animState: islandAnimState,
+  onCrabClick: () => {
+    if (recruitmentNpcClicked || recruitmentModalShowing) return;
+    recruitmentNpcClicked = true;
+    recruitmentModalShowing = true;
+    recruitmentModal.show(state.resources.gold, state.crabs ?? 0);
+  },
+});
+
 const world = createWorldRenderer(canvas, {
   waterImg,
   shipSheet,
@@ -258,6 +285,28 @@ const world = createWorldRenderer(canvas, {
 // Add island entities to the world
 world.addEntity(islandEntity);
 world.addEntity(shopIslandEntity);
+world.addEntity(recruitmentIslandEntity);
+
+// Add crab entities for owned crabs
+function syncCrabEntities() {
+  const crabCount = state.crabs ?? 0;
+  // Remove excess crabs
+  for (let i = crabCount; i < 100; i++) {
+    world.removeEntity(`crab-ship-${i}`);
+  }
+  // Add missing crabs
+  for (let i = 0; i < crabCount; i++) {
+    const id = `crab-ship-${i}`;
+    if (!world.hasEntity(id)) {
+      world.addEntity(createCrabOnShipEntity({
+        index: i,
+        crabImg: assets.crab,
+        shipSheet,
+      }));
+    }
+  }
+}
+syncCrabEntities();
 
 computeOpaqueBounds(mastSheet);
 computeOpaqueBounds(shipSheet);
@@ -332,6 +381,28 @@ shopModal.onContinue(() => {
   startIslandDeparture();
 });
 
+// --- Recruitment Modal ---
+if (pendingRecruitmentModal) {
+  recruitmentModalShowing = true;
+  recruitmentNpcClicked = true;
+  setTimeout(() => recruitmentModal.show(state.resources.gold, state.crabs ?? 0), 300);
+}
+
+recruitmentModal.onPurchase((quantity, totalCost) => {
+  state = dispatch(state, Date.now(), {
+    type: "crabs/purchased",
+    quantity,
+    totalCost,
+  });
+  syncCrabEntities();
+});
+
+recruitmentModal.onContinue(() => {
+  recruitmentModal.hide();
+  recruitmentModalShowing = false;
+  startIslandDeparture();
+});
+
 function startIslandDeparture() {
   // Start slide-out animation
   islandAnimState.slideOutStartMs = Date.now();
@@ -346,8 +417,13 @@ function startIslandDeparture() {
     islandAnimState.skipSlideIn = false;
     shopNpcClicked = false;
     currentShopItems = null;
+    recruitmentNpcClicked = false;
   }, SLIDE_DURATION_MS);
 }
+
+// --- Crab Auto-Click System ---
+const CRAB_CLICKS_PER_SEC = 0.1;
+let crabClickAccumulator = 0;
 
 // --- Spawn Manager ---
 let nextSpawnId = 0;
@@ -446,6 +522,17 @@ function start() {
     }
 
     state = tick(state, nowMs);
+
+    // Crab auto-clicking
+    const crabCount = state.crabs ?? 0;
+    if (crabCount > 0 && !state.island.docked) {
+      const deltaS = computeDeltaSeconds(state.lastTick, nowMs);
+      crabClickAccumulator += crabCount * CRAB_CLICKS_PER_SEC * deltaS;
+      while (crabClickAccumulator >= 1) {
+        crabClickAccumulator -= 1;
+        state = dispatch(state, nowMs, { type: "rudder/clicked", nowMs });
+      }
+    }
 
     if (nowMs - lastSaveAt > AUTOSAVE_INTERVAL_MS) {
       saveToLocalStorage(state);

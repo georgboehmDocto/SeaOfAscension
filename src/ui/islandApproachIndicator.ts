@@ -1,8 +1,6 @@
 import type { GameState } from "../types/GameState";
 import { formatResource } from "../helpers/formatResource";
 import { getIslandSide } from "./canvas/entities/world/island";
-import { getIslandType } from "../types/IslandState";
-
 export type IslandApproachIndicator = {
   update: (state: GameState) => void;
 };
@@ -49,9 +47,7 @@ export function createIslandApproachIndicator(): IslandApproachIndicator {
       );
       distanceEl.textContent = `${formatResource(remaining)}m`;
 
-      // Show what type of island is coming
-      const nextType = getIslandType(state.island.islandsVisited);
-      labelEl.textContent = nextType === "shop" ? "Next: Shop Island" : "Next: Treasure Island";
+      labelEl.textContent = "Island approaching";
     },
   };
 }

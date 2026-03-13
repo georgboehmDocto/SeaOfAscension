@@ -59,6 +59,15 @@ export function reduce(state: GameState, action: GameAction): GameState {
           : state.island,
       };
     }
+    case "crabs/purchased":
+      return {
+        ...state,
+        resources: {
+          ...state.resources,
+          gold: state.resources.gold - action.totalCost,
+        },
+        crabs: (state.crabs ?? 0) + action.quantity,
+      };
     case "island/chestOpened":
       return {
         ...state,
