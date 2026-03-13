@@ -1,4 +1,5 @@
-import { ISLAND_INTERVAL_METERS } from "../constants/constants";
+import { BASE_RUDDER_DISTANCE, ISLAND_INTERVAL_METERS } from "../constants/constants";
+import { deriveEconomyStats } from "../economy/deriveEconomyStats";
 import { getDefaultCaptainState } from "../defaults/getDefaultCaptainState";
 import type { GameState } from "../types/GameState";
 import type { GameAction } from "./GameAction";
@@ -35,6 +36,29 @@ export function reduce(state: GameState, action: GameAction): GameState {
           ascendencyGems: state.resources.ascendencyGems + 1,
         },
       };
+    case "rudder/clicked": {
+      if (state.island.docked) return state;
+      const rudderLevel = state.ship.upgrades.rudder?.level ?? 0;
+      const distPerClick = BASE_RUDDER_DISTANCE + rudderLevel * 0.5;
+      const newDist = state.resources.distance + distPerClick;
+      // Earn gold proportional to distance, using the same economy stats as passive sailing
+      const econ = deriveEconomyStats(state, action.nowMs);
+      const goldEarned = distPerClick * econ.goldPerMeter * econ.goldMultiplier;
+      // Check if we hit the next island
+      const hitIsland = newDist >= state.island.nextIslandAt;
+      return {
+        ...state,
+        resources: {
+          ...state.resources,
+          distance: hitIsland ? state.island.nextIslandAt : newDist,
+          gold: state.resources.gold + goldEarned,
+          lifeTimeGoldEarned: state.resources.lifeTimeGoldEarned + goldEarned,
+        },
+        island: hitIsland
+          ? { ...state.island, docked: true, chestOpened: false, shopItemPurchased: false }
+          : state.island,
+      };
+    }
     case "island/chestOpened":
       return {
         ...state,

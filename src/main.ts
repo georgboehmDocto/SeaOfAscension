@@ -33,6 +33,7 @@ import { createFishEntity } from "./ui/canvas/entities/world/fish";
 import { createGemEntity } from "./ui/canvas/entities/world/gem";
 import { createIslandEntity, type IslandAnimState, SLIDE_DURATION_MS } from "./ui/canvas/entities/world/island";
 import { createShopIslandEntity } from "./ui/canvas/entities/world/shopIsland";
+import { createRudderEntity } from "./ui/canvas/entities/world/rudder";
 import { createIslandModal } from "./ui/islandModal";
 import { createShopModal } from "./ui/shopModal";
 import { createIslandApproachIndicator } from "./ui/islandApproachIndicator";
@@ -123,6 +124,8 @@ const assets = await loadAssets({
   chestGold: "/buried chest-opening-half buried-gold.png",
   chestEmpty: "/buried chest-opening-half buried.png",
   beach: "/beach - standard - with thick foam - spritesheet.png",
+  rudderLeft: "/rudder_left.png",
+  rudderRight: "/rudder_right.png",
   npcIdle: "/npc-idle.png",
   shopBuilding: "/house-fisherman house.png",
   fish0: "/fish/fish_0.png",
@@ -248,6 +251,8 @@ const world = createWorldRenderer(canvas, {
   shipSheet,
   mastSheet,
   bucketImg,
+  rudderLeftImg: assets.rudderLeft,
+  rudderRightImg: assets.rudderRight,
 });
 
 // Add island entities to the world

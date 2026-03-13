@@ -11,6 +11,9 @@ export const FISH_SPAWN_WEIGHT = 0.75;
 
 export const SHIP_SCALE = 1.5;
 
+/** Base distance gained per rudder click (before upgrades) */
+export const BASE_RUDDER_DISTANCE = 1;
+
 export const ISLAND_INTERVAL_METERS = 600; // every N meters of distance
 
 export type SeaDefinition = {

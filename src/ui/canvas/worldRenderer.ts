@@ -12,6 +12,8 @@ export function createWorldRenderer(
     shipSheet: SpriteSheet;
     mastSheet: SpriteSheet;
     bucketImg: HTMLImageElement;
+    rudderLeftImg: HTMLImageElement;
+    rudderRightImg: HTMLImageElement;
   }
 ) {
   const context = canvas.getContext("2d");
@@ -37,6 +39,8 @@ export function createWorldRenderer(
     shipSheet: deps.shipSheet,
     mastSheet: deps.mastSheet,
     bucketImg: deps.bucketImg,
+    rudderLeftImg: deps.rudderLeftImg,
+    rudderRightImg: deps.rudderRightImg,
   });
 
   function draw(state: GameState, nowMs: number, deltaInSeconds: number) {

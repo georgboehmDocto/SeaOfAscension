@@ -27,7 +27,7 @@ export const initialGameState: GameState = {
   lastTick: Date.now(),
   resources: getDefaultResources(),
   ship: {
-    base: { baseSpeed: 1 },
+    base: { baseSpeed: 0 },
     upgrades: getDefaultShipUpgrades(),
   },
   captain: null,

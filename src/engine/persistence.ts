@@ -60,6 +60,9 @@ function migrate(input: unknown): unknown {
     if (!s.ship.upgrades.luckBucket) {
       s.ship.upgrades.luckBucket = { level: 0, cost: 200, resource: "gold" };
     }
+    if (!s.ship.upgrades.rudder) {
+      s.ship.upgrades.rudder = { level: 0, cost: 15, resource: "gold" };
+    }
   }
 
   // Ensure island state exists for old saves

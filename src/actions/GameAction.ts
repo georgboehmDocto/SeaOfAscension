@@ -12,6 +12,7 @@ export type GameAction =
   | { type: "gem/collected" }
   | { type: "island/chestOpened"; goldReward: number; gemReward: number }
   | { type: "island/continue" }
+  | { type: "rudder/clicked"; nowMs: number }
   | {
       type: "shop/itemPurchased";
       itemId: string;

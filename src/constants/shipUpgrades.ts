@@ -1,6 +1,6 @@
 import { ModifierUpgradeEffects } from "../types/Modifiers";
 
-export type ShipUpgradeId = 'sail' | 'engine' | 'nets' | 'refinery' | 'luckBucket'
+export type ShipUpgradeId = 'sail' | 'engine' | 'nets' | 'refinery' | 'luckBucket' | 'rudder'
 
 export const SHIP_UPGRADE_DEFINITIONS: Record<ShipUpgradeId, ModifierUpgradeEffects> = {
   sail: { kind: "addBaseSpeed", amountPerLevel: 0.1 },
@@ -8,4 +8,5 @@ export const SHIP_UPGRADE_DEFINITIONS: Record<ShipUpgradeId, ModifierUpgradeEffe
   nets: { kind: "addGoldPerMeter", amountPerLevel: 0.05 },
   refinery: { kind: "mulGold", factorPerLevel: 1.1 },
   luckBucket: { kind: "mulSpawnRate", factorPerLevel: 1.2 },
+  rudder: { kind: "addRudderDistance", amountPerLevel: 0.5 },
 }

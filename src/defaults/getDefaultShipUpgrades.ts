@@ -31,5 +31,10 @@ export function getDefaultShipUpgrades(): Record<
       cost: 200,
       resource: "gold",
     },
+    rudder: {
+      level: 0,
+      cost: 15,
+      resource: "gold",
+    },
   };
 }

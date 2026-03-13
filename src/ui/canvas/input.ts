@@ -108,7 +108,11 @@ export function attachCanvasInput(opts: {
     const screenX = canvasRect.left + cssPoint.x;
     const screenY = canvasRect.top + cssPoint.y;
 
-    if (action.type === "fish/collected") {
+    if (action.type === "rudder/clicked") {
+      const rudderLevel = state.ship.upgrades.rudder?.level ?? 0;
+      const dist = 1 + rudderLevel * 0.5;
+      showFloatingText(screenX, screenY, `+${dist}m`, "#87CEEB");
+    } else if (action.type === "fish/collected") {
       showFloatingText(screenX, screenY, `+${action.goldAmount} gold`, "#FFD700");
     } else if (action.type === "gem/collected") {
       showFloatingText(screenX, screenY, "+1 gem", "#AA55FF");
